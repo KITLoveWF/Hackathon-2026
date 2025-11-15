@@ -1,21 +1,16 @@
 import { useState } from 'react';
-import { MessageSquare, MessageCircle, Upload, X, Power, PowerOff } from 'lucide-react';
+import { MessageSquare, MessageCircle, Upload, X, Power, PowerOff, BarChart } from 'lucide-react';
 import ragService from '../../services/ragService';
-
-export default function Sidebar({
-  isOpen,
-  activeTab,
-  onTabChange,
-  chatActive,
-  onChatToggle,
-  userRole
-}) {
+import StatisticsModal from '../StatisticsModal';
+export default function Sidebar({ isOpen, activeTab, onTabChange, chatActive, onChatToggle, userRole }) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isStatisticsModalOpen, setIsStatisticsModalOpen] = useState(false);
 
   const tabs = [
-    { id: 'class',    label: 'Câu hỏi trên lớp',   icon: MessageSquare },
-    { id: 'offtopic', label: 'Câu hỏi ngoài lề',  icon: MessageCircle },
-    { id: 'upload',   label: 'Tải tài liệu lên',  icon: Upload },
+    { id: 'class', label: 'Câu hỏi trên lớp', icon: MessageSquare },
+    { id: 'offtopic', label: 'Câu hỏi ngoài lề', icon: MessageCircle },
+    { id: 'upload', label: 'Tải tài liệu lên', icon: Upload },
+    { id: 'statistics', label: 'Thống kê câu hỏi', icon: BarChart }, // Tab mới
   ];
 
   const handleUploadClick = () => {
@@ -23,29 +18,36 @@ export default function Sidebar({
     setIsUploadModalOpen(true);
   };
 
+  const handleStatisticsClick = () => {
+    onTabChange('statistics');
+    setIsStatisticsModalOpen(true);
+  };
+
   return (
     <>
-      <div className={`
-            ${isOpen ? 'w-64' : 'w-0'}   {/* Đây là thay đổi duy nhất cần thiết */}
-            backdrop-blur-sm
-            shadow-2xl transition-all duration-300 
-            overflow-hidden flex flex-col
-          `}>
-          <div className="p-6 flex-1">
+      <div
+        className={` ${isOpen ? 'w-64' : 'w-0'} backdrop-blur-sm shadow-2xl transition-all duration-300 overflow-hidden flex flex-col `}
+      >
+        <div className="p-6 flex-1">
           <nav className="space-y-3">
-            {(userRole === 'TEACHER' ? tabs : tabs.filter(t => t.id !== 'upload')).map((tab) => {
+            {(userRole === 'TEACHER' ? tabs : tabs.filter(t => t.id !== 'upload' && t.id !== 'statistics')).map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-
               return (
                 <button
                   key={tab.id}
-                  onClick={tab.id === 'upload' ? handleUploadClick : () => onTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all
-                    ${isActive
+                  onClick={
+                    tab.id === 'upload'
+                      ? handleUploadClick
+                      : tab.id === 'statistics'
+                      ? handleStatisticsClick
+                      : () => onTabChange(tab.id)
+                  }
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                    isActive
                       ? 'bg-white text-cyan-600 shadow-lg scale-105'
                       : 'text-white/80 hover:bg-white/10 hover:text-white hover:scale-102'
-                    }`}
+                  }`}
                 >
                   <Icon size={20} />
                   <span className={`flex-1 text-left transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
@@ -56,19 +58,18 @@ export default function Sidebar({
             })}
           </nav>
         </div>
-
         {userRole === 'TEACHER' && (
           <div className="p-6 pt-0 border-t border-white/20">
             <button
               onClick={onChatToggle}
-              className={`w-full flex items-center justify-center mt-6 gap-2 px-6 py-4 rounded-xl font-bold text-white transition-all transform hover:scale-105 shadow-xl
-                ${chatActive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'}
-              `}
+              className={`w-full flex items-center justify-center mt-6 gap-2 px-6 py-4 rounded-xl font-bold text-white transition-all transform hover:scale-105 shadow-xl ${
+                chatActive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+              } `}
             >
               {chatActive ? (
                 <>
                   <PowerOff size={26} />
-                  <span className={isOpen ? 'block' : 'hidden'} >Kết thúc phiên</span>
+                  <span className={isOpen ? 'block' : 'hidden'}>Kết thúc phiên</span>
                 </>
               ) : (
                 <>
@@ -77,10 +78,10 @@ export default function Sidebar({
                 </>
               )}
             </button>
-
             {isOpen && (
               <p className="text-white/80 text-sm text-center mt-3 font-medium">
-                Trạng thái: <span className={chatActive ? 'text-emerald-300' : 'text-red-300'}>
+                Trạng thái:{' '}
+                <span className={chatActive ? 'text-emerald-300' : 'text-red-300'}>
                   {chatActive ? 'Đang hoạt động' : 'Đã tắt'}
                 </span>
               </p>
@@ -88,8 +89,8 @@ export default function Sidebar({
           </div>
         )}
       </div>
-
       <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <StatisticsModal isOpen={isStatisticsModalOpen} onClose={() => setIsStatisticsModalOpen(false)} />
     </>
   );
 }

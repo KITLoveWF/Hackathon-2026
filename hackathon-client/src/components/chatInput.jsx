@@ -44,11 +44,11 @@ export default function ChatInput({
   const inputClasses = `
     flex-1 px-5 py-3 rounded-xl transition-all duration-200
     focus:outline-none focus:ring-2
-    ${chatActive ? colors.input : 'bg-gray-100 text-gray-400 cursor-not-allowed select-none'}
+    ${chatActive ? colors.input : 'flex-1 px-5 py-3 bg-gray-100 text-gray-400 cursor-not-allowed select-none'}
   `;
 
   const buttonClasses = `
-    p-3 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md
+    rounded-xl px-5 py-3 transition-all duration-200 flex items-center justify-center shadow-md
     ${chatActive && value.trim()
       ? `${colors.button} shadow-lg hover:shadow-xl`
       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -79,12 +79,14 @@ export default function ChatInput({
         </button>
       </div>
 
-      {/* Small hint when chat is disabled */}
-      {!chatActive && (
-        <p className="text-center text-xs text-gray-500 mt-3">
-          Phiên chat đã tắt — bật ở thanh bên để gửi tin nhắn
-        </p>
-      )}
+      <div className="h-3 mt-3 text-center">
+        {!chatActive && (
+          <p className="text-xs text-gray-500">
+            Phiên chat đã tắt — bật ở thanh bên để gửi tin nhắn
+          </p>
+        )}
+      </div>
+
     </div>
   );
 }

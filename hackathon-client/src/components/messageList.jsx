@@ -8,7 +8,9 @@ export default function MessageList({ messages = [] }) {
         >
           <div
             className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
-              msg.isSent
+              msg.user === 'Chatbot'
+                ? 'bg-purple-600 text-white'
+                : msg.isSent
                 ? 'bg-blue-600 text-white'
                 : 'bg-blue-100 border border-gray-200'
             }`}

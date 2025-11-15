@@ -1,8 +1,8 @@
-// components/MainContent.jsx
+// src/pages/Chatbox.jsx hoặc MainContent.jsx
 import { useState } from 'react';
 import ChatGrid from '#components/ChatGrid';
 
-export default function MainContent({ activeTab }) {
+export default function MainContent({ activeTab, chatActive, userRole }) {
   const [classMessages, setClassMessages] = useState([
     { id: 1, user: 'Học sinh A', message: 'Em có thắc mắc về bài tập số 5 ạ', time: '10:30' },
     { id: 2, user: 'Giáo viên', message: 'Em hãy nêu cụ thể phần nào em chưa hiểu nhé', time: '10:32' }
@@ -23,11 +23,11 @@ export default function MainContent({ activeTab }) {
   const setMessages = isClass ? setClassMessages : setOffTopicMessages;
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
+    if (!chatActive || !inputValue.trim()) return;
 
     const newMessage = {
       id: Date.now(),
-      user: 'Bạn',
+      user: userRole === 'TEACHER' ? 'Giáo viên' : 'Bạn',
       message: inputValue,
       time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
     };
@@ -36,22 +36,16 @@ export default function MainContent({ activeTab }) {
     setInputValue('');
   };
 
-  const config = isClass 
-    ? { title: 'Câu hỏi trên lớp', icon: 'book', color: 'green', placeholder: 'Nhập câu hỏi về bài học...' }
-    : { title: 'Câu hỏi ngoài lề', icon: 'chat', color: 'purple', placeholder: 'Chat thoải mái với bạn bè...' };
-
   return (
     <div className="h-full p-4 md:p-8">
       <ChatGrid
-        title={config.title}
-        icon={config.icon}
-        color={config.color}
+        color={activeTab === 'class' ? 'green' : 'purple'}
         messages={messages}
         inputValue={inputValue}
         onInputChange={(e) => setInputValue(e.target.value)}
         onSendMessage={handleSend}
-        placeholder={config.placeholder}
-        onEnterPress={handleSend}
+        placeholder={chatActive ? "Nhập câu hỏi của bạn..." : "Phiên chat đã đóng — chờ giáo viên mở"}
+        chatActive={chatActive}
       />
     </div>
   );

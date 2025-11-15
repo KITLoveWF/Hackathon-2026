@@ -17,7 +17,7 @@ export default function MessageList({ messages = [] }) {
               <span className="font-semibold text-sm">{msg.user}</span>
               <span className="text-xs opacity-70">{msg.time}</span>
             </div>
-            <p className="text-sm break-words">{msg.message}</p>
+            <p className="text-sm break-all">{msg.message}</p>
           </div>
         </div>
       ))}

@@ -236,7 +236,7 @@ export class HackathonService {
       },
       relations: ['upvotes'],
       order: {
-        createdAt: 'DESC',
+        createdAt: 'ASC',
       },
     });
 

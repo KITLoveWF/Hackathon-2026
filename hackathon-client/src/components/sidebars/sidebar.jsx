@@ -1,20 +1,16 @@
 import { useState } from 'react';
-import { MessageSquare, MessageCircle, Upload, X, Power, PowerOff } from 'lucide-react';
-
-export default function Sidebar({
-  isOpen,
-  activeTab,
-  onTabChange,
-  chatActive,
-  onChatToggle,
-  userRole
-}) {
+import { MessageSquare, MessageCircle, Upload, X, Power, PowerOff, BarChart } from 'lucide-react';
+import ragService from '../../services/ragService';
+import StatisticsModal from '../StatisticsModal';
+export default function Sidebar({ isOpen, activeTab, onTabChange, chatActive, onChatToggle, userRole }) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isStatisticsModalOpen, setIsStatisticsModalOpen] = useState(false);
 
   const tabs = [
-    { id: 'class',    label: 'Câu hỏi trên lớp',   icon: MessageSquare },
-    { id: 'offtopic', label: 'Câu hỏi ngoài lề',  icon: MessageCircle },
-    { id: 'upload',   label: 'Tải tài liệu lên',  icon: Upload },
+    { id: 'class', label: 'Câu hỏi trên lớp', icon: MessageSquare },
+    { id: 'offtopic', label: 'Câu hỏi ngoài lề', icon: MessageCircle },
+    { id: 'upload', label: 'Tải tài liệu lên', icon: Upload },
+    { id: 'statistics', label: 'Thống kê câu hỏi', icon: BarChart }, // Tab mới
   ];
 
   const handleUploadClick = () => {
@@ -22,29 +18,36 @@ export default function Sidebar({
     setIsUploadModalOpen(true);
   };
 
+  const handleStatisticsClick = () => {
+    onTabChange('statistics');
+    setIsStatisticsModalOpen(true);
+  };
+
   return (
     <>
-      <div className={`
-            ${isOpen ? 'w-64' : 'w-0'}   {/* Đây là thay đổi duy nhất cần thiết */}
-            bg-gradient-to-b from-blue-600 to-blue-800 
-            shadow-2xl transition-all duration-300 
-            overflow-hidden flex flex-col
-          `}>
-          <div className="p-6 flex-1">
+      <div
+        className={` ${isOpen ? 'w-64' : 'w-0'} backdrop-blur-sm shadow-2xl transition-all duration-300 overflow-hidden flex flex-col `}
+      >
+        <div className="p-6 flex-1">
           <nav className="space-y-3">
-            {(userRole === 'TEACHER' ? tabs : tabs.filter(t => t.id !== 'upload')).map((tab) => {
+            {(userRole === 'TEACHER' ? tabs : tabs.filter(t => t.id !== 'upload' && t.id !== 'statistics')).map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-
               return (
                 <button
                   key={tab.id}
-                  onClick={tab.id === 'upload' ? handleUploadClick : () => onTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all
-                    ${isActive
+                  onClick={
+                    tab.id === 'upload'
+                      ? handleUploadClick
+                      : tab.id === 'statistics'
+                      ? handleStatisticsClick
+                      : () => onTabChange(tab.id)
+                  }
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                    isActive
                       ? 'bg-white text-cyan-600 shadow-lg scale-105'
                       : 'text-white/80 hover:bg-white/10 hover:text-white hover:scale-102'
-                    }`}
+                  }`}
                 >
                   <Icon size={20} />
                   <span className={`flex-1 text-left transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
@@ -67,19 +70,19 @@ export default function Sidebar({
               {!chatActive ? (
                 <>
                   <PowerOff size={26} />
-                  <span className={isOpen ? 'block' : 'hidden'}>Kết thúc phiên chat</span>
+                  <span className={isOpen ? 'block' : 'hidden'}>Kết thúc phiên</span>
                 </>
               ) : (
                 <>
                   <Power size={26} />
-                  <span className={isOpen ? 'block' : 'hidden'}>Bật phiên chat</span>
+                  <span className={isOpen ? 'block' : 'hidden'}>Bật phiên</span>
                 </>
               )}
             </button>
-
             {isOpen && (
               <p className="text-white/80 text-sm text-center mt-3 font-medium">
-                Trạng thái: <span className={chatActive ? 'text-red-300' : 'text-emerald-300'}>
+                Trạng thái:{' '}
+                <span className={chatActive ? 'text-red-300' : 'text-emerald-300'}>
                   {chatActive ? 'Đã tắt' : 'Đang hoạt động'}
                 </span>
               </p>
@@ -87,23 +90,25 @@ export default function Sidebar({
           </div>
         )}
       </div>
-
       <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <StatisticsModal isOpen={isStatisticsModalOpen} onClose={() => setIsStatisticsModalOpen(false)} />
     </>
   );
 }
+
 function UploadModal({ isOpen, onClose }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null); // Add state for error handling
 
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false);
     }
   };
@@ -115,10 +120,11 @@ function UploadModal({ isOpen, onClose }) {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === "application/pdf") {
+      if (droppedFile.type === 'application/pdf') {
         setFile(droppedFile);
+        setError(null); // Clear any previous errors
       } else {
-        alert("Chỉ chấp nhận file PDF thôi nhé!");
+        setError('Chỉ chấp nhận file PDF!');
       }
     }
   };
@@ -126,10 +132,11 @@ function UploadModal({ isOpen, onClose }) {
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type === "application/pdf") {
+      if (selectedFile.type === 'application/pdf') {
         setFile(selectedFile);
+        setError(null); // Clear any previous errors
       } else {
-        alert("Vui lòng chọn file PDF.");
+        setError('Vui lòng chọn file PDF.');
       }
     }
   };
@@ -138,16 +145,23 @@ function UploadModal({ isOpen, onClose }) {
     if (!file) return;
 
     setUploading(true);
-    await new Promise((res) => setTimeout(res, 2000));
+    setError(null); // Clear any previous errors
 
-    setUploading(false);
-    setSuccess(true);
+    try {
+      const response = await ragService.addPDF(file); 
+      setUploading(false);
+      setSuccess(true);
 
-    setTimeout(() => {
-      setFile(null);
-      setSuccess(false);
-      onClose();
-    }, 2000);
+      // Show success message for 2 seconds, then reset
+      setTimeout(() => {
+        setFile(null);
+        setSuccess(false);
+        onClose();
+      }, 2000);
+    } catch (err) {
+      setUploading(false);
+      setError(err.message || 'Tải lên thất bại. Vui lòng thử lại.');
+    }
   };
 
   if (!isOpen) return null;
@@ -158,7 +172,6 @@ function UploadModal({ isOpen, onClose }) {
         className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-200"
         onDragEnter={handleDrag}
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
@@ -210,13 +223,17 @@ function UploadModal({ isOpen, onClose }) {
               )}
             </div>
 
+            {error && (
+              <p className="mt-4 text-red-600 text-center text-sm">{error}</p>
+            )}
+
             <div className="mt-6 flex justify-center">
               <button
                 onClick={handleUpload}
                 disabled={!file || uploading}
                 className={`px-8 py-3 rounded-lg font-medium transition-all
                   ${file && !uploading
-                    ? 'bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg'
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
               >

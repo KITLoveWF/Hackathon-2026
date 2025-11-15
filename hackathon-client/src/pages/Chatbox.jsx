@@ -4,6 +4,24 @@ import ChatGrid from '#components/ChatGrid';
 import { useLocation } from "react-router-dom";
 import axios from 'axios';
 import socketService from '../services/socketService';
+import ragService from '../services/ragService';
+
+const Popup = ({ message, onClose }) => {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-transparent backdrop-blur-sm bg-opacity-90 z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h3 className="text-lg font-semibold mb-2">Câu trả lời tự động</h3>
+        <p className="text-gray-700 mb-4">{message}</p>
+        <button
+          onClick={onClose}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function MainContent({ activeTab, chatActive, userRole }) {
   const location = useLocation();
@@ -16,8 +34,9 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
   const [errorPopup, setErrorPopup] = useState(false);
   const [classInput, setClassInput] = useState('');
   const [offTopicInput, setOffTopicInput] = useState('');
+  const [error, setError] = useState('');
+  const [popup, setPopup] = useState({ visible: false, message: '' }); // State cho popup
   const [chatboxIds, setChatboxIds] = useState({ inClass: null, offTopic: null });
-
   const isClass = activeTab === 'class';
   const messages = isClass ? classMessages : offTopicMessages;
   const inputValue = isClass ? classInput : offTopicInput;
@@ -166,6 +185,16 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
       console.error("Error adding comment:", err);
     }
   }
+  
+  const academicKeywords = [
+    'môn học', 'điểm số', 'bài tập', 'kiểm tra', 'thi', 'giáo trình', 'học', 'lý thuyết',
+    'thực hành', 'điểm', 'chương', 'bài', 'câu hỏi', 'giải thích', 'công thức'
+  ];
+
+  const isAcademicQuestion = (message) => {
+    const lowerMessage = message.toLowerCase();
+    return academicKeywords.some(keyword => lowerMessage.includes(keyword));
+  };
 
   const handleSend = async () => {
     if (!chatActive || !inputValue.trim()) return;
@@ -184,27 +213,6 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         year: "numeric",
       })
     };
-    setIsLoading(true)
-    const status = await addComment(inputValue);
-    setIsLoading(false)
-    console.log(status);
-    if (status === "success") {
-      // setMessages(prev => [...prev, newMessage]);
-    }
-    else{
-      setErrorPopup(true);
-    }
-    setInputValue('');
-    
-  };
-
-  const handleUpvoteChange = async (questionId, newUpvoteCount) => {
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.id === questionId ? { ...msg, upvoteCount: newUpvoteCount } : msg
-      )
-    );
-
     try {
       const isClass = activeTab === 'class';
       const chatboxId = chatboxIds[isClass ? 'inClass' : 'offTopic'];
@@ -224,10 +232,74 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
     } catch (err) {
       console.error('Error refetching questions after upvote:', err);
     }
+
+    //RAG
+    // Thêm tin nhắn vào danh sách (trừ trường hợp là câu hỏi học thuật trong off-topic)
+    let ragCheck = false;
+    if (isClass || !isAcademicQuestion(inputValue)) {
+      setMessages(prev => [...prev, newMessage]);
+    }
+    setInputValue('');
+    // Xử lý câu hỏi học thuật trong tab ngoài lề
+    if (!isClass && isAcademicQuestion(inputValue)) {
+      setIsLoading(true);
+      setError('');
+      try {
+        const response = await ragService.query(inputValue, 3);
+        // Hiển thị câu trả lời trong popup thay vì thêm vào danh sách tin nhắn
+        console.log("RAG RESPONSE:", response);
+        if (response.scores[0]>0.4) {
+          ragCheck = true;
+          setPopup({
+            visible: true,
+            message: response.answer || 'Không tìm thấy thông tin liên quan.'
+          });
+        }
+      } catch (err) {
+        setError(err.message || 'Không thể lấy câu trả lời từ chatbot.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    // Gửi câu hỏi lên server để lọc và lưu vào DB
+    if(!ragCheck){
+      setIsLoading(true)
+      const status = await addComment(inputValue);
+      setIsLoading(false)
+      console.log(status);
+      if (status === "success") {
+        // setMessages(prev => [...prev, newMessage]);
+      }
+      else{
+        setErrorPopup(true);
+      }
+    }
+    setInputValue('');
+    
   };
+
+  const handleUpvoteChange = async (questionId, newUpvoteCount) => {
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === questionId ? { ...msg, upvoteCount: newUpvoteCount } : msg
+      )
+    );
+  }
+
+  const closePopup = () => {
+    setPopup({ visible: false, message: '' });
+  };
+
 
   return (
     <div className="h-full p-4 md:p-8">
+      {isLoading && (
+        <div className="text-center text-gray-500">Đang xử lý câu hỏi...</div>
+      )}
+      {error && (
+        <div className="text-center text-red-500 mb-4">{error}</div>
+      )}
       <ChatGrid
         color={activeTab === 'class' ? 'green' : 'purple'}
         messages={messages}
@@ -266,6 +338,7 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         </div>
       </div>
     )}
+      {popup.visible && <Popup message={popup.message} onClose={closePopup} />}
     </div>
   );
 }

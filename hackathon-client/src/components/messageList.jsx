@@ -20,14 +20,13 @@ export default function MessageList({ messages = [], onUpvoteChange = null }) {
           const userUpvoted = msg.upvotes.some(upvote => upvote.userId === user.id);
           upvotedMap[msg.id] = userUpvoted; 
         } else {
-          upvotedMap[msg.id] = false; y
+          upvotedMap[msg.id] = false;
         }
       });
       setUpvotedQuestions(upvotedMap);
     };
-
     checkUserUpvotes();
-  }, [user, messages]);
+  }, []);
 
   const handleUpvote = async (e, msg) => {
     e.stopPropagation();
@@ -118,10 +117,12 @@ export default function MessageList({ messages = [], onUpvoteChange = null }) {
           className={`flex ${msg.isSent ? 'justify-start' : 'justify-end'} message-item`}
         >
           <div
-            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              msg.isSent
-                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-blue-500/40'
-                : 'bg-gradient-to-br from-slate-100 to-slate-50 text-slate-900 border border-slate-200 hover:shadow-slate-400/30'
+            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+              msg.user === 'Chatbot'
+                ? 'bg-purple-600 text-white'
+                : msg.isSent
+                ? 'bg-blue-600 text-white'
+                : 'bg-blue-100 border border-gray-200'
             }`}
             onDoubleClick={(e) => handleUpvote(e, msg)}
             title="Double click to upvote"

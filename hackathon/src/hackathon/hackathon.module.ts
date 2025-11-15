@@ -7,9 +7,12 @@ import { Role } from './entities/role.entity';
 import { Class } from './entities/class.entity';
 import { Chatbox } from './entities/chatbox.entity';
 import { Question } from './entities/question.entity';
+import { Upvote } from './entities/upvote.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Class, Chatbox, Question])],
+  imports: [
+    TypeOrmModule.forFeature([User, Role, Class, Chatbox, Question, Upvote]),
+  ],
   providers: [HackathonService],
   controllers: [HackathonController],
 })

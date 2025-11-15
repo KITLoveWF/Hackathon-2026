@@ -12,7 +12,6 @@ export default function ChatInput({
 }) {
   const inputRef = useRef(null);
 
-  // Auto-focus input when chat becomes active
   useEffect(() => {
     if (chatActive && inputRef.current) {
       inputRef.current.focus();

@@ -3,11 +3,13 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
 import { Chatbox } from './chatbox.entity';
+import { Upvote } from './upvote.entity';
 import { QuestionType } from '../enum/question.enum';
 
 @Entity('questions')
@@ -31,6 +33,9 @@ export class Question {
     default: QuestionType.IN_CLASS,
   })
   type: QuestionType;
+
+  @OneToMany(() => Upvote, (upvote) => upvote.question, { cascade: true })
+  upvotes: Upvote[];
 
   @CreateDateColumn()
   createdAt: Date;

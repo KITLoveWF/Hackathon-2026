@@ -14,6 +14,7 @@ import { User } from '../entities/user.entity';
 import { Class } from '../entities/class.entity';
 import { Question } from '../entities/question.entity';
 import { Chatbox } from '../entities/chatbox.entity';
+import { Upvote } from '../entities/upvote.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
@@ -32,6 +33,8 @@ export class HackathonService {
     private readonly questionRepository: Repository<Question>,
     @InjectRepository(Chatbox)
     private readonly chatboxRepository: Repository<Chatbox>,
+    @InjectRepository(Upvote)
+    private readonly upvoteRepository: Repository<Upvote>,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {
@@ -196,21 +199,120 @@ export class HackathonService {
       },
       relations: ['class'], // nếu bạn muốn load class kèm theo
     });
-    console.log("chatboxes: ", chatboxes);
+    console.log('chatboxes: ', chatboxes);
     return {
       success: true,
       data: chatboxes,
     };
   }
 
-  async getQuestionsByChatboxId(chatboxId: string){
+  async getQuestionsByChatboxId(chatboxId: string) {
     const questions = await this.questionRepository.find({
       where: {
-        chatboxId: chatboxId,},
+        chatboxId: chatboxId,
+      },
+      relations: ['upvotes'],
+      order: {
+        createdAt: 'DESC',
+      },
     });
+
+    // Map để thêm upvotes array vào mỗi question và cập nhật upvoteCount
+    const questionsWithUpvotes = questions.map((question) => ({
+      ...question,
+      upvoteCount: question.upvotes?.length || 0,
+      upvotes:
+        question.upvotes?.map((upvote) => ({
+          userId: upvote.userId,
+        })) || [],
+    }));
+
     return {
       success: true,
-      data: questions,
+      data: questionsWithUpvotes,
     };
+  }
+
+  async upvoteQuestion(questionId: string, userId: string): Promise<any> {
+    try {
+      if (!questionId || !userId) {
+        this._handleExceptionError(
+          'Question ID và User ID không được để trống',
+          400,
+        );
+      }
+
+      const question = await this.questionRepository.findOne({
+        where: { id: questionId },
+      });
+
+      if (!question) {
+        this._handleExceptionError('Câu hỏi không tồn tại', 404);
+      }
+
+      // Kiểm tra xem user đã upvote chưa
+      const existingUpvote = await this.upvoteRepository.findOne({
+        where: { questionId, userId },
+      });
+
+      // Nếu đã upvote rồi, không upvote lại (trả về success nhưng không thêm)
+      if (existingUpvote) {
+        return {
+          success: true,
+          data: { message: 'Bạn đã upvote câu hỏi này rồi' },
+          error: null,
+        };
+      }
+
+      // Tạo upvote mới
+      const upvote = this.upvoteRepository.create({
+        questionId,
+        userId,
+      });
+
+      await this.upvoteRepository.save(upvote);
+
+      return {
+        success: true,
+        data: { message: 'Upvote thành công' },
+        error: null,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async removeUpvote(questionId: string, userId: string): Promise<any> {
+    try {
+      if (!questionId || !userId) {
+        this._handleExceptionError(
+          'Question ID và User ID không được để trống',
+          400,
+        );
+      }
+
+      const upvote = await this.upvoteRepository.findOne({
+        where: { questionId, userId },
+      });
+
+      if (!upvote) {
+        // Nếu upvote không tồn tại, trả về success (đã bị xóa)
+        return {
+          success: true,
+          data: { message: 'Upvote đã được xóa hoặc không tồn tại' },
+          error: null,
+        };
+      }
+
+      await this.upvoteRepository.remove(upvote);
+
+      return {
+        success: true,
+        data: { message: 'Xóa upvote thành công' },
+        error: null,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { HackathonService } from '../service/hackathon.service';
 import { LoginDto } from '../dto/login.dto';
@@ -71,5 +71,35 @@ export class HackathonController {
   @ApiResponse({ status: 200, description: 'Logout successful' })
   async logout(): Promise<AuthResponseDTO> {
     return this.hackathonService.logout();
+  }
+
+  @Post('questions/:questionId/upvote')
+  @ApiOperation({ summary: 'Upvote a question' })
+  @ApiResponse({ status: 200, description: 'Upvote successful' })
+  @ApiResponse({ status: 400, description: 'Bad request or already upvoted' })
+  async upvoteQuestion(
+    @Param('questionId') questionId: string,
+    @Body() body: { userId: string },
+  ): Promise<any> {
+    return this.hackathonService.upvoteQuestion(questionId, body.userId);
+  }
+
+  // @Get('chatbox/:chatboxId/questions/sorted')
+  // @ApiOperation({ summary: 'Get questions sorted by upvote count' })
+  // @ApiResponse({ status: 200, description: 'Questions retrieved' })
+  // async getQuestionsWithUpvotes(
+  //   @Param('chatboxId') chatboxId: string,
+  // ): Promise<any> {
+  //   return this.hackathonService.getQuestionsWithUpvotes(chatboxId);
+  // }
+
+  @Delete('questions/:questionId/upvote/:userId')
+  @ApiOperation({ summary: 'Remove upvote from question' })
+  @ApiResponse({ status: 200, description: 'Upvote removed' })
+  async removeUpvote(
+    @Param('questionId') questionId: string,
+    @Param('userId') userId: string,
+  ): Promise<any> {
+    return this.hackathonService.removeUpvote(questionId, userId);
   }
 }

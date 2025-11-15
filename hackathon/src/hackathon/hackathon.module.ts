@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HackathonService } from './service/hackathon.service';
 import { HackathonController } from './controller/hackathon.controller';
@@ -7,10 +7,12 @@ import { Role } from './entities/role.entity';
 import { Class } from './entities/class.entity';
 import { Chatbox } from './entities/chatbox.entity';
 import { Question } from './entities/question.entity';
+import { WsGateway } from '../gateway/ws.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Role, Class, Chatbox, Question])],
-  providers: [HackathonService],
+  providers: [HackathonService, WsGateway],
   controllers: [HackathonController],
+  exports: [HackathonService],
 })
 export class HackathonModule {}

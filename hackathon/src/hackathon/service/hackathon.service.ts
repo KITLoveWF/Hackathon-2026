@@ -5,6 +5,8 @@ import {
   UnauthorizedException,
   HttpException,
   HttpStatus,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -19,6 +21,7 @@ import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
 import { stat } from 'fs';
 import { QuestionType } from '../enum/question.enum';
+import { WsGateway } from '../../gateway/ws.gateway';
 
 @Injectable()
 export class HackathonService {
@@ -32,6 +35,8 @@ export class HackathonService {
     private readonly questionRepository: Repository<Question>,
     @InjectRepository(Chatbox)
     private readonly chatboxRepository: Repository<Chatbox>,
+    @Inject(forwardRef(() => WsGateway))
+    private readonly wsGateway: WsGateway,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {
@@ -140,12 +145,29 @@ export class HackathonService {
   }
 
   // Add question
-  async addQuestion(questionDto: QuestionDto): Promise<void> {
+  async addQuestion(questionDto: QuestionDto): Promise<any> {
     const { chatBoxId, context, type } = questionDto;
     const n8n_response = await this.fetchData(context);
     if (n8n_response.status === 'success') {
       try {
-        await this.addQuestionInDB(questionDto);
+        const newQuestion = await this.addQuestionInDB(questionDto);
+        
+        // Lấy thông tin chatbox để có classroomId
+        const chatbox = await this.chatboxRepository.findOne({
+          where: { id: chatBoxId },
+        });
+        
+        if (chatbox) {
+          // Broadcast tin nhắn mới qua WebSocket
+          const roomName = `${chatbox.classId}-${type}`;
+          this.wsGateway.broadcastToRoom(roomName, 'messageReceived', {
+            id: newQuestion.id,
+            content: newQuestion.content,
+            type: newQuestion.type,
+            createdAt: newQuestion.createdAt,
+            chatboxId: newQuestion.chatboxId,
+          });
+        }
       } catch (error) {
         throw new HttpException(
           'Failed to add question to the database', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -163,13 +185,13 @@ export class HackathonService {
     return await res.json();
   }
 
-  async addQuestionInDB (questionDto: QuestionDto): Promise<void> {
+  async addQuestionInDB (questionDto: QuestionDto): Promise<Question> {
     const question = this.questionRepository.create({
       chatboxId: questionDto.chatBoxId,
       content: questionDto.context,
       type: questionDto.type,
     });
-    await this.questionRepository.save(question);
+    return await this.questionRepository.save(question);
   }
 
   async getChatboxByClassAndType(classId: string, type: QuestionType) {

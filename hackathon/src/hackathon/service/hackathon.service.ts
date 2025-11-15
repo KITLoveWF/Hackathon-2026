@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
+import { Class } from '../entities/class.entity';
 import { Question } from '../entities/question.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
@@ -22,6 +23,8 @@ export class HackathonService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Class)
+    private readonly classRepository: Repository<Class>,
     private readonly jwtService: JwtService,
     @InjectRepository(Question)
     private readonly questionRepository: Repository<Question>,
@@ -62,6 +65,41 @@ export class HackathonService {
         },
         error: null,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getClassroomById(teacherId: string): Promise<any> {
+    try {
+      if (!teacherId) {
+        this._handleExceptionError('ID không được để trống', 400);
+      }
+      const classroom = await this.classRepository.find({
+        where: { teacherId: teacherId },
+      });
+      return classroom;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getStudentClassrooms(studentId: string): Promise<any> {
+    try {
+      if (!studentId) {
+        this._handleExceptionError('ID không được để trống', 400);
+      }
+      const classrooms = await this.classRepository
+        .createQueryBuilder('classes')
+        .innerJoin('student_classes', 'sc', 'sc.classId = classes.id')
+        .innerJoin('users', 'teacher', 'teacher.id = classes.teacherId')
+        .where('sc.userId = :studentId', { studentId })
+        .select([
+          'classes.id',
+          'classes.className',
+          'classes.scheduleTime',
+          'teacher.fullName',
+        ])
+        .getRawMany();
+      return classrooms;
     } catch (error) {
       throw error;
     }

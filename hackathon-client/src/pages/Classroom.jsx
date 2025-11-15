@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import axios from "axios";
 import classService from "../services/classService";
 import {useNavigate} from 'react-router-dom'
 export default function Classroom() {
-    const { state } = useLocation();
     const navigate = useNavigate()
     const [classrooms,setClassrooms] = useState([]);
-    const role = state.userData.User.role;
+    const role = JSON.parse(localStorage.getItem('user')).role;
     useEffect(() => {
         // Fetch classroom data using state.classroomId
         const fetchClassroomData = async () => {
             try {
                 if(role === "TEACHER")
                 {
-                    const teacherId = state.userData.User.id;
+                    const teacherId = JSON.parse(localStorage.getItem('user')).id;
                     const response = await classService.getClassroomsByTeacherId(teacherId);
                     setClassrooms(response);
                 }
                 else{
-                    const studentId = state.userData.User.id;
+                    const studentId = JSON.parse(localStorage.getItem('user')).id;
                     const response = await classService.getClassroomsByStudentId(studentId);
                     setClassrooms(response);
                 }
@@ -60,12 +57,11 @@ export default function Classroom() {
                             {/* Card Header */}
                             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 group-hover:from-blue-700 group-hover:to-blue-600 transition-all">
                                 <h3 className="text-xl font-bold text-white mb-2">{role === "TEACHER"?classroom.className:classroom.teacher_fullName}</h3>
-                                <p className="text-blue-100 text-sm">{role === "TEACHER"?state.userData.User.fullName:classroom.teacher_fullName}</p>
+                                <p className="text-blue-100 text-sm">{role === "TEACHER"?JSON.parse(localStorage.getItem('user')).fullName:classroom.teacher_fullName}</p>
                             </div>
 
                             {/* Card Body */}
                             <div className="p-6 space-y-4">
-
                                 <div className="flex items-center gap-3 text-gray-700">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />

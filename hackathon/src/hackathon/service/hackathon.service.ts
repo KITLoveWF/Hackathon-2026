@@ -13,10 +13,12 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { Class } from '../entities/class.entity';
 import { Question } from '../entities/question.entity';
+import { Chatbox } from '../entities/chatbox.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
 import { stat } from 'fs';
+import { QuestionType } from '../enum/question.enum';
 
 @Injectable()
 export class HackathonService {
@@ -28,6 +30,8 @@ export class HackathonService {
     private readonly jwtService: JwtService,
     @InjectRepository(Question)
     private readonly questionRepository: Repository<Question>,
+    @InjectRepository(Chatbox)
+    private readonly chatboxRepository: Repository<Chatbox>,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {
@@ -181,5 +185,32 @@ export class HackathonService {
       type: questionDto.type,
     });
     await this.questionRepository.save(question);
+  }
+
+  async getChatboxByClassAndType(classId: string, type: QuestionType) {
+    const chatboxes = await this.chatboxRepository.findOne({
+      where: {
+        classId: classId,
+        type: type,
+        isActive: true,
+      },
+      relations: ['class'], // nếu bạn muốn load class kèm theo
+    });
+    console.log("chatboxes: ", chatboxes);
+    return {
+      success: true,
+      data: chatboxes,
+    };
+  }
+
+  async getQuestionsByChatboxId(chatboxId: string){
+    const questions = await this.questionRepository.find({
+      where: {
+        chatboxId: chatboxId,},
+    });
+    return {
+      success: true,
+      data: questions,
+    };
   }
 }

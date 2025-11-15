@@ -4,6 +4,8 @@ import { HackathonService } from '../service/hackathon.service';
 import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
+import { chatboxDto } from '../dto/chatBox.dto';
+import { QuestionType } from '../enum/question.enum';
 
 export type AuthErrorKind =
   | 'auth_invalid_credentials'
@@ -42,6 +44,27 @@ export class HackathonController {
   @Post('send-message')
   async sendMessage(@Body() questionDto: QuestionDto): Promise<any> {
     return this.hackathonService.addQuestion(questionDto);
+  }
+
+  @Get('chatbox_in_class/:classId')
+  async getInClassChatbox(@Param('classId') classId: string) {
+    return this.hackathonService.getChatboxByClassAndType(
+      classId,
+      QuestionType.IN_CLASS,
+    );
+  }
+
+  @Get('chatbox_off_topic/:classId')
+  async getOffTopicChatbox(@Param('classId') classId: string) {
+    return this.hackathonService.getChatboxByClassAndType(
+      classId,
+      QuestionType.OFF_TOPIC,
+    );
+  }
+
+  @Get('questions/:chatboxId')
+  async getQuestionsByChatbox(@Param('chatboxId') chatboxId: string) {
+    return this.hackathonService.getQuestionsByChatboxId(chatboxId);
   }
   @Post('auth/logout')
   @ApiOperation({ summary: 'User logout' })

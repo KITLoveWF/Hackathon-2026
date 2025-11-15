@@ -66,7 +66,6 @@ export class HackathonController {
   async getQuestionsByChatbox(@Param('chatboxId') chatboxId: string) {
     return this.hackathonService.getQuestionsByChatboxId(chatboxId);
   }
-<<<<<<< HEAD
 
   @Post('chatbox/change-is-active/:chatboxId/:isActive')
   async changeChatboxStatus(

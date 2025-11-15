@@ -17,7 +17,6 @@ export default function Login() {
     try {
       const userData = await authService.login(email, password)
       console.log('Login successful:', userData)
-      // Chuyển hướng dựa trên role
       const role = userData.role
       if (role === 'admin') {
         navigate('/dashboard')

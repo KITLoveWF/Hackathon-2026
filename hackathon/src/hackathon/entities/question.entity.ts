@@ -8,7 +8,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Chatbox } from './chatbox.entity';
-import { User } from './user.entity';
 import { QuestionType } from '../enum/question.enum';
 
 @Entity('questions')
@@ -22,12 +21,6 @@ export class Question {
 
   @Column({ type: 'uuid' })
   chatboxId: string;
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
-
-  @Column({ type: 'uuid' })
-  userId: string;
 
   @Column({ type: 'text' })
   content: string;

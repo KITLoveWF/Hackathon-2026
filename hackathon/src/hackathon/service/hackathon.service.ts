@@ -60,6 +60,13 @@ export class HackathonService {
       throw error;
     }
   }
+  async logout(): Promise<AuthResponseDTO> {
+    return {
+      success: true,
+      data: null,
+      error: null,
+    };
+  }
 
   private _validateLoginInput(loginDto: LoginDto): void {
     if (!loginDto.email || !loginDto.password) {

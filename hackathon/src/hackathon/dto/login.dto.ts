@@ -14,6 +14,7 @@ export function dto_converter(user: ValidateDTO): {
   id: string;
   email: string;
   fullName: string;
+  role: string;
 } {
   if (!user.email) {
     throw new Error('Invalid data or sth idk');
@@ -22,5 +23,6 @@ export function dto_converter(user: ValidateDTO): {
     id: user.id,
     email: user.email,
     fullName: user.fullName,
+    role: user.role,
   };
 }

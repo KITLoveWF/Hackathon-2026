@@ -1,13 +1,35 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import authService from '../services/authService'
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Login:', { email, password })
-    navigate('/classroom');
+    setLoading(true)
+    setError('')
+
+    try {
+      const userData = await authService.login(email, password)
+      console.log('Login successful:', userData)
+      // Chuyển hướng dựa trên role
+      const role = userData.role
+      if (role === 'admin') {
+        navigate('/dashboard')
+      } else {
+        navigate('/classroom')
+      }
+    } catch (err) {
+      setError(err.response?.data?.error?.message || 'Login failed. Please try again.')
+      console.error('Login error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -33,6 +55,13 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -85,9 +114,10 @@ export default function Login() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Sign In
+                {loading ? 'Signing In...' : 'Sign In'}
               </button>
 
               {/* Sign Up Link */}

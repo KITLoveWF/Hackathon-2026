@@ -20,4 +20,12 @@ export class HackathonController {
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDTO> {
     return this.hackathonService.login(loginDto);
   }
+  @Get('classrooms/:teacherId')
+  async getClassroomById(teacherId: string): Promise<any> {
+    return this.hackathonService.getClassroomById(teacherId);
+  }
+  @Get('student/classrooms/:studentId')
+  async getStudentClassrooms(studentId: string): Promise<any> {
+    return this.hackathonService.getStudentClassrooms(studentId);
+  }
 }

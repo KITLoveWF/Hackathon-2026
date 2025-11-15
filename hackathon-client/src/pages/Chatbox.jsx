@@ -160,8 +160,8 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         inputValue={inputValue}
         onInputChange={(e) => setInputValue(e.target.value)}
         onSendMessage={handleSend}
-        placeholder={chatActive ? "Nhập câu hỏi của bạn..." : "Phiên chat đã đóng — chờ giáo viên mở"}
-        chatActive={chatActive}
+        placeholder={chatActive&&JSON.parse(localStorage.getItem('user')).role === 'STUDENT' ? "Nhập câu hỏi của bạn..." : "Phiên chat đã đóng — chờ giáo viên mở"}
+        chatActive={chatActive&& JSON.parse(localStorage.getItem('user')).role === 'STUDENT'}
       />
     {isLoading && (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">

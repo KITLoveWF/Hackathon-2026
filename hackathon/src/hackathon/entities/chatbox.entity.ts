@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Class } from './class.entity';
 import { Question } from './question.entity';
+import { QuestionType } from '../enum/question.enum';
 
 @Entity('chatboxes')
 export class Chatbox {
@@ -23,8 +24,12 @@ export class Chatbox {
   @Column({ type: 'uuid' })
   classId: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title: string;
+  @Column({
+      type: 'enum',
+      enum: QuestionType,
+      default: QuestionType.IN_CLASS,
+    })
+  type: QuestionType;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

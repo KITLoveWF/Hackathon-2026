@@ -64,4 +64,15 @@ export class HackathonController {
   ) {
     return this.hackathonService.getQuestionsByChatboxId(chatboxId);
   }
+
+  @Post('chatbox/change-is-active/:chatboxId/:isActive')
+  async changeChatboxStatus(
+    @Param('chatboxId') chatboxId: string,
+    @Param('isActive') isActive: boolean,
+  ) {
+    return this.hackathonService.changeChatboxStatus(
+      chatboxId,
+      isActive,
+    );
+  }
 }

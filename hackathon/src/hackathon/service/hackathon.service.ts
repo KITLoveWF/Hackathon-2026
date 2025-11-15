@@ -220,4 +220,13 @@ export class HackathonService {
       data: questions,
     };
   }
+
+  async changeChatboxStatus(
+    chatboxId: string,
+    isActive: boolean,
+  ){
+    return await this.chatboxRepository.update(chatboxId, { 
+      isActive: isActive 
+    });
+  }
 }

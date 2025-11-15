@@ -1,5 +1,11 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
+import { User } from '../entities/user.entity';
+import { Question } from '../entities/question.entity';
+import { Role } from '../entities/role.entity';
+import { Chatbox } from '../entities/chatbox.entity';
+import { Class } from '../entities/class.entity';
+
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -8,8 +14,8 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD ?? '',
   database: process.env.DB_DATABASE,
-  entities: [],
-  migrations: ['src/utils/migrations/*{.ts,.js}'],
+  entities: [User, Question, Role, Chatbox, Class],
+  migrations: ['src/hackathon/utils/migrations/*{.ts,.js}'],
   synchronize: false,
   logging: true,
 });

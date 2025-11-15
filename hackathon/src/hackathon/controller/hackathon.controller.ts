@@ -1,5 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { HackathonService } from '../service/hackathon.service';
+import { LoginDto } from '../dto/login.dto';
+import { AuthResponseDTO } from '../dto/auth-response.dto';
+
+export type AuthErrorKind =
+  | 'auth_invalid_credentials'
+  | 'auth_Invalid_refresh_TOken';
 
 @Controller('hackathon')
 export class HackathonController {
@@ -8,5 +14,10 @@ export class HackathonController {
   @Get('healthcheck')
   healthcheck(): { status: string; message: string; timestamp: string } {
     return this.hackathonService.healthcheck();
+  }
+
+  @Post('auth/login')
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDTO> {
+    return this.hackathonService.login(loginDto);
   }
 }

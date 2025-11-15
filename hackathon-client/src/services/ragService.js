@@ -2,7 +2,7 @@
 import axios from 'axios';
 import authService from './authService';
 
-const API_URL = 'http://localhost:8000'; 
+const API_URL = 'https://citatory-kristen-noninferably.ngrok-free.dev'; 
 
 const ragService = {
   // Upload a PDF file to the knowledge base

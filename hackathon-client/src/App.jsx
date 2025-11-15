@@ -10,6 +10,9 @@ import {
 import Login from '#pages/Login.jsx';
 import Classroom from '#pages/Classroom.jsx';
 import HomeLayout from '#layouts/HomeLayout.jsx';
+import ChatLayout from '#/layouts/ChatLayout.jsx';
+import Chatbox from '#/pages/Chatbox.jsx';
+
 function App() {
   const [count, setCount] = useState(0)
   const [healthStatus, setHealthStatus] = useState(null)
@@ -45,6 +48,16 @@ function App() {
           },
         ]
       },
+      {
+          path: "/chat",
+          element: <ChatLayout />,         
+          children: [
+            {
+              index: true,                    
+              element: <Chatbox />,
+            },
+          ],
+        },
     ]
   )
 

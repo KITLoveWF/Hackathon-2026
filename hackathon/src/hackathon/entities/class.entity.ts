@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  ManyToMany,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
@@ -37,6 +38,9 @@ export class Class {
 
   @OneToMany(() => Chatbox, (chatbox) => chatbox.class)
   chatboxes: Chatbox[];
+
+  @ManyToMany(() => User, (user) => user.enrolledClasses)
+  students: User[];
 
   @CreateDateColumn()
   createdAt: Date;

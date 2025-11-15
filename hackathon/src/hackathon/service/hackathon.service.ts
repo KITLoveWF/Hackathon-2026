@@ -14,7 +14,6 @@ import { User } from '../entities/user.entity';
 import { Class } from '../entities/class.entity';
 import { Question } from '../entities/question.entity';
 import { Chatbox } from '../entities/chatbox.entity';
-import { Class } from '../entities/class.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
@@ -33,8 +32,6 @@ export class HackathonService {
     private readonly questionRepository: Repository<Question>,
     @InjectRepository(Chatbox)
     private readonly chatboxRepository: Repository<Chatbox>,
-    @InjectRepository(Class)
-    private readonly classRepository: Repository<Class>,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {

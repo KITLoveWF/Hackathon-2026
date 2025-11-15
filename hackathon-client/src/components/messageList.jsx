@@ -15,7 +15,13 @@ export default function MessageList({ messages = [] }) {
           >
             <div className="flex justify-between items-start mb-1">
               <span className="font-semibold text-sm">học sinh ẩn danh</span>
-              <span className="text-xs opacity-70">{msg.createdAt}</span>
+              <span className="text-xs opacity-70">{new Date(msg.createdAt).toLocaleString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+              })}</span>
             </div>
             <p className="text-sm break-all">{msg.content}</p>
           </div>

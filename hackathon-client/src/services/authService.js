@@ -22,8 +22,15 @@ const authService = {
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('user');
+  logout: async () => {
+    try {
+      await axios.post(`${API_URL}/hackathon/auth/logout`);
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Logout error:', error);
+      localStorage.removeItem('user');
+      throw error;
+    }
   },
 
   getRole: () => {

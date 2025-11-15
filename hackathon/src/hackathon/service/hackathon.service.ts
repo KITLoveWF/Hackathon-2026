@@ -16,6 +16,7 @@ import { User } from '../entities/user.entity';
 import { Class } from '../entities/class.entity';
 import { Question } from '../entities/question.entity';
 import { Chatbox } from '../entities/chatbox.entity';
+import { Upvote } from '../entities/upvote.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
@@ -37,6 +38,8 @@ export class HackathonService {
     private readonly chatboxRepository: Repository<Chatbox>,
     @Inject(forwardRef(() => WsGateway))
     private readonly wsGateway: WsGateway,
+    @InjectRepository(Upvote)
+    private readonly upvoteRepository: Repository<Upvote>,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {
@@ -84,8 +87,8 @@ export class HackathonService {
         this._handleExceptionError('ID không được để trống', 400);
       }
       const classroom = await this.classRepository.find({
-        where: { teacherId: teacherId }
-      })
+        where: { teacherId: teacherId },
+      });
       return classroom;
     } catch (error) {
       throw error;
@@ -113,6 +116,14 @@ export class HackathonService {
       throw error;
     }
   }
+  async logout(): Promise<AuthResponseDTO> {
+    return {
+      success: true,
+      data: null,
+      error: null,
+    };
+  }
+
   private _validateLoginInput(loginDto: LoginDto): void {
     if (!loginDto.email || !loginDto.password) {
       this._handleExceptionError('Email và password không được để trống', 400);
@@ -170,7 +181,9 @@ export class HackathonService {
         }
       } catch (error) {
         throw new HttpException(
-          'Failed to add question to the database', HttpStatus.INTERNAL_SERVER_ERROR);
+          'Failed to add question to the database',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
     }
     return n8n_response;
@@ -179,13 +192,19 @@ export class HackathonService {
   // fetch service from n8n
   async fetchData(question: string): Promise<any> {
     const n8n_domain = process.env.N8N_DOMAIN || 'http://localhost:5678';
-    const res = await fetch(n8n_domain+'/webhook/check-message/b0cf2a70-0237-4da5-9544-77a1c21a07cb?question='+question, {
-      method: 'GET',
-    });
+    const res = await fetch(
+      n8n_domain +
+        '/webhook/check-message/b0cf2a70-0237-4da5-9544-77a1c21a07cb?question=' +
+        question,
+      {
+        method: 'GET',
+      },
+    );
     return await res.json();
   }
 
-  async addQuestionInDB (questionDto: QuestionDto): Promise<Question> {
+  async addQuestionInDB (questionDto: QuestionDto): Promise<Question> 
+ {
     const question = this.questionRepository.create({
       chatboxId: questionDto.chatBoxId,
       content: questionDto.context,
@@ -203,21 +222,36 @@ export class HackathonService {
       },
       relations: ['class'], // nếu bạn muốn load class kèm theo
     });
-    console.log("chatboxes: ", chatboxes);
+    console.log('chatboxes: ', chatboxes);
     return {
       success: true,
       data: chatboxes,
     };
   }
 
-  async getQuestionsByChatboxId(chatboxId: string){
+  async getQuestionsByChatboxId(chatboxId: string) {
     const questions = await this.questionRepository.find({
       where: {
-        chatboxId: chatboxId,},
+        chatboxId: chatboxId,
+      },
+      relations: ['upvotes'],
+      order: {
+        createdAt: 'DESC',
+      },
     });
+
+    const questionsWithUpvotes = questions.map((question) => ({
+      ...question,
+      upvoteCount: question.upvotes?.length || 0,
+      upvotes:
+        question.upvotes?.map((upvote) => ({
+          userId: upvote.userId,
+        })) || [],
+    }));
+
     return {
       success: true,
-      data: questions,
+      data: questionsWithUpvotes,
     };
   }
 
@@ -228,5 +262,85 @@ export class HackathonService {
     return await this.chatboxRepository.update(chatboxId, { 
       isActive: isActive 
     });
+  }
+  async upvoteQuestion(questionId: string, userId: string): Promise<any> {
+    try {
+      if (!questionId || !userId) {
+        this._handleExceptionError(
+          'Question ID và User ID không được để trống',
+          400,
+        );
+      }
+
+      const question = await this.questionRepository.findOne({
+        where: { id: questionId },
+      });
+
+      if (!question) {
+        this._handleExceptionError('Câu hỏi không tồn tại', 404);
+      }
+
+ 
+      const existingUpvote = await this.upvoteRepository.findOne({
+        where: { questionId, userId },
+      });
+
+
+      if (existingUpvote) {
+        return {
+          success: true,
+          data: { message: 'Bạn đã upvote câu hỏi này rồi' },
+          error: null,
+        };
+      }
+      const upvote = this.upvoteRepository.create({
+        questionId,
+        userId,
+      });
+
+      await this.upvoteRepository.save(upvote);
+
+      return {
+        success: true,
+        data: { message: 'Upvote thành công' },
+        error: null,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async removeUpvote(questionId: string, userId: string): Promise<any> {
+    try {
+      if (!questionId || !userId) {
+        this._handleExceptionError(
+          'Question ID và User ID không được để trống',
+          400,
+        );
+      }
+
+      const upvote = await this.upvoteRepository.findOne({
+        where: { questionId, userId },
+      });
+
+      if (!upvote) {
+      
+        return {
+          success: true,
+          data: { message: 'Upvote đã được xóa hoặc không tồn tại' },
+          error: null,
+        };
+      }
+
+      await this.upvoteRepository.remove(upvote);
+
+      return {
+        success: true,
+        data: { message: 'Xóa upvote thành công' },
+        error: null,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

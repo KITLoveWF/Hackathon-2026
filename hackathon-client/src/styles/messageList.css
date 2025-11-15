@@ -1,0 +1,92 @@
+/* Floating Hearts Animation - Enhanced */
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(0.3) rotate(20deg);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(30px);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+  }
+}
+
+.floating-heart {
+  position: fixed;
+  font-size: 2rem;
+  pointer-events: none;
+  animation: float-up 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, drift 1.2s ease-in-out forwards, pulse-glow 1.2s ease-in-out forwards;
+  left: 50%;
+  bottom: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  will-change: transform, opacity;
+}
+
+/* Message Container Animations */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-item {
+  animation: slide-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Button Hover Effects */
+@keyframes button-hover {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+.upvote-button:hover {
+  animation: button-hover 0.3s ease-out;
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}

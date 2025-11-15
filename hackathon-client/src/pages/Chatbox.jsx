@@ -6,23 +6,17 @@ import axios from 'axios';
 import socketService from '../services/socketService';
 
 export default function MainContent({ activeTab, chatActive, userRole }) {
-  const { state } = useLocation();
-  const [classMessages, setClassMessages] = useState([
-    { id: 1, user: 'Học sinh A', content: 'Em có thắc mắc về bài tập số 5 ạ', createdAt: '10:30' },
-    { id: 2, user: 'Giáo viên', content: 'Em hãy nêu cụ thể phần nào em chưa hiểu nhé', createdAt: '10:32' }
-  ]);
-
-  const [offTopicMessages, setOffTopicMessages] = useState([
-    { id: 1, user: 'Học sinh B', content: 'Thầy ơi, giờ ra chơi là mấy giờ ạ?', createdAt: '10:25' },
-    { id: 2, user: 'Học sinh C', content: 'Các bạn có đi ăn trưa không?', createdAt: '10:28' }
-  ]);
+  const location = useLocation();
+  const state = location.state || {};
+  const [classMessages, setClassMessages] = useState([]);
+  const [offTopicMessages, setOffTopicMessages] = useState([]);
   const [chatBoxInClassId, setChatBoxInClassId] = useState(null);
   const [chatBoxOffTopicId, setChatBoxOffTopicId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorPopup, setErrorPopup] = useState(false);
-
   const [classInput, setClassInput] = useState('');
   const [offTopicInput, setOffTopicInput] = useState('');
+  const [chatboxIds, setChatboxIds] = useState({ inClass: null, offTopic: null });
 
   const isClass = activeTab === 'class';
   const messages = isClass ? classMessages : offTopicMessages;
@@ -31,31 +25,81 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
   const setMessages = isClass ? setClassMessages : setOffTopicMessages;
 
   useEffect(() => {
-    console.log(state.classroomId);
+    console.log("Chatbox useEffect - State:", state);
+    
+    const classroomId = state?.classroomId;
+    if (!classroomId) {
+      console.warn("No classroom ID found in state");
+      setClassMessages([]);
+      setOffTopicMessages([]);
+      return;
+    }
+
     const fetchAll = async () => {
       try {
+        console.log("Fetching for classroom:", classroomId);
+        
         const inClassRes = await axios.get(
-          "http://localhost:10000/hackathon/chatbox_in_class/" + state.classroomId
+          `http://localhost:10000/hackathon/chatbox_in_class/${classroomId}`
         );
         const offTopicRes = await axios.get(
-          "http://localhost:10000/hackathon/chatbox_off_topic/" + state.classroomId
+          `http://localhost:10000/hackathon/chatbox_off_topic/${classroomId}`
         );
+        
         const chatBoxInClass = inClassRes.data.data;
         const chatBoxOffTopic = offTopicRes.data.data;
-        setChatBoxInClassId(inClassRes.data.data.id);
-        setChatBoxOffTopicId(offTopicRes.data.data.id);
-        const questionsInClass = await axios.get(
-          "http://localhost:10000/hackathon/questions/" + chatBoxInClass.id
-        );
-        const questionsOffTopic = await axios.get(
-          "http://localhost:10000/hackathon/questions/" + chatBoxOffTopic.id
-        );
-        setClassMessages(questionsInClass.data.data);
-        setOffTopicMessages(questionsOffTopic.data.data);
+        
+        setChatboxIds({
+          inClass: chatBoxInClass?.id,
+          offTopic: chatBoxOffTopic?.id,
+        });
+        
+        console.log("IN CLASS CHATBOX:", chatBoxInClass);
+        console.log("OFF TOPIC CHATBOX:", chatBoxOffTopic);
+
+        if (!chatBoxInClass) {
+          console.error("In-class chatbox not found");
+          setClassMessages([]);
+        } else {
+          try {
+            const questionsInClassRes = await axios.get(
+              `http://localhost:10000/hackathon/questions/${chatBoxInClass.id}`
+            );
+            console.log("IN CLASS API RESPONSE:", questionsInClassRes.data);
+            const inClassQuestions = questionsInClassRes.data.data || questionsInClassRes.data || [];
+            setClassMessages(Array.isArray(inClassQuestions) ? inClassQuestions : []);
+          } catch (err) {
+            console.error("Error fetching in-class questions:", err);
+            setClassMessages([]);
+          }
+        }
+
+        if (!chatBoxOffTopic) {
+          console.warn("Off-topic chatbox not found (might not exist)");
+          setOffTopicMessages([]);
+        } else {
+          try {
+            const questionsOffTopicRes = await axios.get(
+              `http://localhost:10000/hackathon/questions/${chatBoxOffTopic.id}`
+            );
+            console.log("OFF TOPIC API RESPONSE:", questionsOffTopicRes.data);
+            const offTopicQuestions = questionsOffTopicRes.data.data || questionsOffTopicRes.data || [];
+            setOffTopicMessages(Array.isArray(offTopicQuestions) ? offTopicQuestions : []);
+          } catch (err) {
+            console.error("Error fetching off-topic questions:", err);
+            setOffTopicMessages([]);
+          }
+        }
+        
+        setChatBoxInClassId(chatBoxInClass?.id);
+        setChatBoxOffTopicId(chatBoxOffTopic?.id);
       } catch (err) {
-        console.error("ERROR:", err);
+        console.error("ERROR fetching chatboxes:", err);
+        setClassMessages([]);
+        setOffTopicMessages([]);
       }
     };
+    
     fetchAll();
   },[state.classroomId]);
 
@@ -130,12 +174,14 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
       id: Date.now(),
       user: userRole === 'TEACHER' ? 'Giáo viên' : 'học sinh ẩn danh',
       content: inputValue,
+      upvoteCount: 0,
+      upvotes: [], 
       createdAt: new Date().toLocaleTimeString("vi-VN", {
         hour: "2-digit",
         minute: "2-digit",
         day: "2-digit",
         month: "2-digit",
-        year: "numeric"
+        year: "numeric",
       })
     };
     setIsLoading(true)
@@ -152,6 +198,34 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
     
   };
 
+  const handleUpvoteChange = async (questionId, newUpvoteCount) => {
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === questionId ? { ...msg, upvoteCount: newUpvoteCount } : msg
+      )
+    );
+
+    try {
+      const isClass = activeTab === 'class';
+      const chatboxId = chatboxIds[isClass ? 'inClass' : 'offTopic'];
+      
+      if (!chatboxId) return;
+
+      const response = await axios.get(
+        `http://localhost:10000/hackathon/questions/${chatboxId}`
+      );
+      
+      const updatedQuestions = response.data.data || response.data || [];
+      
+      if (Array.isArray(updatedQuestions)) {
+        setMessages(updatedQuestions);
+        console.log('Questions refreshed after upvote:', updatedQuestions);
+      }
+    } catch (err) {
+      console.error('Error refetching questions after upvote:', err);
+    }
+  };
+
   return (
     <div className="h-full p-4 md:p-8">
       <ChatGrid
@@ -160,6 +234,7 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         inputValue={inputValue}
         onInputChange={(e) => setInputValue(e.target.value)}
         onSendMessage={handleSend}
+        onUpvoteChange={handleUpvoteChange}
         placeholder={chatActive&&JSON.parse(localStorage.getItem('user')).role === 'STUDENT' ? "Nhập câu hỏi của bạn..." : "Phiên chat đã đóng — chờ giáo viên mở"}
         chatActive={chatActive&& JSON.parse(localStorage.getItem('user')).role === 'STUDENT'}
       />

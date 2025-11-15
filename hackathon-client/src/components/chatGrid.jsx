@@ -7,13 +7,14 @@ export default function ChatGrid({
   inputValue,
   onInputChange,
   onSendMessage,
+  onUpvoteChange = null,
   placeholder,
   chatActive= false
 }) {
 
   return (
     <div className="h-full flex flex-col rounded-2xl shadow-2xl overflow-hidden borde">
-      <MessageList messages={messages} />
+      <MessageList messages={messages} onUpvoteChange={onUpvoteChange} />
       <ChatInput
         value={inputValue}
         onChange={onInputChange}

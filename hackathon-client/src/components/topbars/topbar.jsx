@@ -17,7 +17,7 @@ export default function Topbar({ sidebarOpen, setSidebarOpen }) {
         </div>
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/classroom')}
             className="p-2 hover:bg-blue-600 rounded-lg transition"
           >
             <ArrowBigLeft size={22} />

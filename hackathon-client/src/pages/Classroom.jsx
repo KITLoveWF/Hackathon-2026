@@ -1,5 +1,8 @@
+import { useNavigate } from 'react-router-dom';
+
 export default function Classroom() {
     // Sample classroom data
+    const navigate = useNavigate();
     const classrooms = [
         { id: 1, name: "Web Development", instructor: "John Doe", students: 24, schedule: "Mon, Wed, Fri 10:00 AM" },
         { id: 2, name: "Data Science", instructor: "Jane Smith", students: 18, schedule: "Tue, Thu 2:00 PM" },
@@ -53,7 +56,8 @@ export default function Classroom() {
 
                                 {/* Action Buttons */}
                                 <div className="pt-4 flex gap-3">
-                                    <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all text-sm">
+                                    <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all text-sm"
+                                    onClick={() => navigate('/chat')}>
                                         Enter
                                     </button>
                                 </div>

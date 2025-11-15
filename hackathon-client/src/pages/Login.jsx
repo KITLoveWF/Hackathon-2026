@@ -89,7 +89,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-50 to-white items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-blue-50 to-white items-center justify-center p-12">
         <div className="relative w-full h-full flex items-center justify-center">
           <img 
             src="/hackathon.jpg" 
@@ -100,7 +100,7 @@ export default function Login() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gradient-to-br from-blue-50 to-white px-4 sm:px-6 lg:px-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-linear-to-br from-blue-50 to-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
           <div className="bg-white p-8 rounded-xl shadow-2xl border border-blue-100">
             <div className="text-center mb-8">

@@ -7,19 +7,19 @@ export default function Classroom() {
     const { state } = useLocation();
     const navigate = useNavigate()
     const [classrooms,setClassrooms] = useState([]);
-    const role = state.userData.User.role;
+    const role = JSON.parse(localStorage.getItem('user')).role;
     useEffect(() => {
         // Fetch classroom data using state.classroomId
         const fetchClassroomData = async () => {
             try {
                 if(role === "TEACHER")
                 {
-                    const teacherId = state.userData.User.id;
+                    const teacherId = JSON.parse(localStorage.getItem('user')).id;
                     const response = await classService.getClassroomsByTeacherId(teacherId);
                     setClassrooms(response);
                 }
                 else{
-                    const studentId = state.userData.User.id;
+                    const studentId = JSON.parse(localStorage.getItem('user')).id;
                     const response = await classService.getClassroomsByStudentId(studentId);
                     setClassrooms(response);
                 }
@@ -60,7 +60,7 @@ export default function Classroom() {
                             {/* Card Header */}
                             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 group-hover:from-blue-700 group-hover:to-blue-600 transition-all">
                                 <h3 className="text-xl font-bold text-white mb-2">{role === "TEACHER"?classroom.className:classroom.teacher_fullName}</h3>
-                                <p className="text-blue-100 text-sm">{role === "TEACHER"?state.userData.User.fullName:classroom.teacher_fullName}</p>
+                                <p className="text-blue-100 text-sm">{role === "TEACHER"?JSON.parse(localStorage.getItem('user')).fullName:classroom.teacher_fullName}</p>
                             </div>
 
                             {/* Card Body */}

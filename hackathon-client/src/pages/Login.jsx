@@ -15,7 +15,8 @@ export default function Login() {
     setError('')
 
     try {
-      const userData = await authService.login(email, password)
+      //const userData = await authService.login(email, password)
+      const userData = localStorage.getItem('user');
       console.log('Login successful:', userData)
       const role = userData.role
       if (role === 'ADMIN') {

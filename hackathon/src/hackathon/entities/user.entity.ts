@@ -4,6 +4,8 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
@@ -38,12 +40,13 @@ export class User {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ type: 'uuid', nullable: true })
-  classId: string;
-
-  @ManyToOne(() => Class, { nullable: true })
-  @JoinColumn({ name: 'classId' })
-  enrolledClass: Class;
+  @ManyToMany(() => Class, (classEntity) => classEntity.students)
+  @JoinTable({
+    name: 'student_classes',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'classId', referencedColumnName: 'id' },
+  })
+  enrolledClasses: Class[];
 
   @OneToMany(() => Class, (classEntity) => classEntity.teacher)
   taughtClasses: Class[];

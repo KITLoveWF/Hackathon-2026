@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HackathonModule } from './hackathon/hackathon.module';
 import { HttpExceptionFilter } from './hackathon/filters/http-exception.filter';
+import { WsGateway } from './gateway/ws.gateway';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { HttpExceptionFilter } from './hackathon/filters/http-exception.filter';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    WsGateway,
   ],
 })
 export class AppModule {}

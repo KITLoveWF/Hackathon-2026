@@ -66,6 +66,7 @@ export class HackathonController {
   async getQuestionsByChatbox(@Param('chatboxId') chatboxId: string) {
     return this.hackathonService.getQuestionsByChatboxId(chatboxId);
   }
+<<<<<<< HEAD
 
   @Post('chatbox/change-is-active/:chatboxId/:isActive')
   async changeChatboxStatus(
@@ -112,5 +113,22 @@ export class HackathonController {
     @Param('userId') userId: string,
   ): Promise<any> {
     return this.hackathonService.removeUpvote(questionId, userId);
+  }
+
+  @Get('classroom/:classroomId/total-questions/week')
+  async getTotalQuestionsByClassroomWeek(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByWeek(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/last-week')
+  async getTotalQuestionsByClassroomLastWeek(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByLastWeek(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/month')
+  async getTotalQuestionsByClassroomMonth(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByMonth(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/last-month')
+  async getTotalQuestionsByClassroomLastMonth(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByLastMonth(classroomId);
   }
 }

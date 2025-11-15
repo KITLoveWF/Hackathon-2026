@@ -114,7 +114,9 @@ export class HackathonService {
         await this.addQuestionInDB(questionDto);
       } catch (error) {
         throw new HttpException(
-          'Failed to add question to the database', HttpStatus.INTERNAL_SERVER_ERROR);
+          'Failed to add question to the database',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
     }
     return n8n_response;
@@ -123,13 +125,18 @@ export class HackathonService {
   // fetch service from n8n
   async fetchData(question: string): Promise<any> {
     const n8n_domain = process.env.N8N_DOMAIN || 'http://localhost:5678';
-    const res = await fetch(n8n_domain+'/webhook/check-message/b0cf2a70-0237-4da5-9544-77a1c21a07cb?question='+question, {
-      method: 'GET',
-    });
+    const res = await fetch(
+      n8n_domain +
+        '/webhook/check-message/b0cf2a70-0237-4da5-9544-77a1c21a07cb?question=' +
+        question,
+      {
+        method: 'GET',
+      },
+    );
     return await res.json();
   }
 
-  async addQuestionInDB (questionDto: QuestionDto): Promise<void> {
+  async addQuestionInDB(questionDto: QuestionDto): Promise<void> {
     const question = this.questionRepository.create({
       chatboxId: questionDto.chatBoxId,
       content: questionDto.context,

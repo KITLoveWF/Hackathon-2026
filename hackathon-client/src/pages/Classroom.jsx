@@ -124,6 +124,11 @@ export default function Classroom() {
         return 'bg-blue-300';
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        navigate('/');
+    };
+
     return (
         <div className="min-h-screen relative bg-gradient-to-br from-blue-50 to-white">
             {/* Background Image */}
@@ -154,7 +159,7 @@ export default function Classroom() {
                                         localStorage.removeItem('user');
                                         navigate('/');
                                     }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-600 hover:bg-red-50 transition-colors"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
@@ -183,17 +188,30 @@ export default function Classroom() {
                                 <h1 className="text-4xl font-bold text-blue-600 mb-2">My Classrooms</h1>
                                 <p className="text-gray-600">Manage and join your learning sessions</p>
                             </div>
-                            {role === "TEACHER" && (
-                                <button 
-                                    onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-                                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                    </svg>
-                                    {isHeatmapOpen ? 'Hide Analytics' : 'Show Analytics'}
-                                </button>
-                            )}
+                            <div className="flex gap-3">
+                                {role === "TEACHER" && (
+                                    <button 
+                                        onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                        {isHeatmapOpen ? 'Hide Analytics' : 'Show Analytics'}
+                                    </button>
+                                )}
+                                {role === "STUDENT" && (
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold  transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                                        </svg>
+                                        Sign Out
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Classrooms Grid */}

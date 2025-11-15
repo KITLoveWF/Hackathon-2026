@@ -3,17 +3,12 @@ import { useState, useEffect } from 'react';
 import ChatGrid from '#components/ChatGrid';
 import { useLocation } from "react-router-dom";
 import axios from 'axios';
-import socketService from '../services/socketService';
 
 export default function MainContent({ activeTab, chatActive, userRole }) {
   const location = useLocation();
   const state = location.state || {};
   const [classMessages, setClassMessages] = useState([]);
   const [offTopicMessages, setOffTopicMessages] = useState([]);
-  const [chatBoxInClassId, setChatBoxInClassId] = useState(null);
-  const [chatBoxOffTopicId, setChatBoxOffTopicId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorPopup, setErrorPopup] = useState(false);
   const [classInput, setClassInput] = useState('');
   const [offTopicInput, setOffTopicInput] = useState('');
   const [chatboxIds, setChatboxIds] = useState({ inClass: null, offTopic: null });
@@ -39,6 +34,7 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
       try {
         console.log("Fetching for classroom:", classroomId);
         
+        // Fetch chatboxes
         const inClassRes = await axios.get(
           `http://localhost:10000/hackathon/chatbox_in_class/${classroomId}`
         );
@@ -49,6 +45,7 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         const chatBoxInClass = inClassRes.data.data;
         const chatBoxOffTopic = offTopicRes.data.data;
         
+        // Store chatbox IDs for later use
         setChatboxIds({
           inClass: chatBoxInClass?.id,
           offTopic: chatBoxOffTopic?.id,
@@ -90,9 +87,6 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
             setOffTopicMessages([]);
           }
         }
-        
-        setChatBoxInClassId(chatBoxInClass?.id);
-        setChatBoxOffTopicId(chatBoxOffTopic?.id);
       } catch (err) {
         console.error("ERROR fetching chatboxes:", err);
         setClassMessages([]);
@@ -101,110 +95,33 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
     };
     
     fetchAll();
-  },[state.classroomId]);
+  }, [state]);
 
-  // WebSocket: Kết nối và tham gia room
-  useEffect(() => {
-    // Kết nối WebSocket
-    socketService.connect();
-
-    // Tham gia room khi có chatBoxId
-    if (chatBoxInClassId && state.classroomId) {
-      socketService.joinClassroom(state.classroomId, chatBoxInClassId, 'in_class');
-    }
-    if (chatBoxOffTopicId && state.classroomId) {
-      socketService.joinClassroom(state.classroomId, chatBoxOffTopicId, 'off_topic');
-    }
-
-    // Lắng nghe tin nhắn mới
-    socketService.onMessageReceived((message) => {
-      console.log('📨 Received new message:', message);
-      
-      //Thêm message vào đúng tab
-      if (message.type === 'in_class') {
-        setClassMessages(prev => [...prev, message]);
-      } else if (message.type === 'off_topic') {
-        setOffTopicMessages(prev => [...prev, message]);
-      }
-    });
-
-    // Cleanup khi unmount
-    return () => {
-      if (state.classroomId) {
-        socketService.leaveClassroom(state.classroomId, 'in_class');
-        socketService.leaveClassroom(state.classroomId, 'off_topic');
-      }
-      socketService.off('messageReceived');
-      socketService.disconnect();
-    };
-  }, [chatBoxInClassId, chatBoxOffTopicId, state.classroomId]);
-
-  useEffect(() => {
-    console.log("UPDATED - in class:", chatBoxInClassId);
-    console.log("UPDATED - off topic:", chatBoxOffTopicId);
-  }, [chatBoxInClassId, chatBoxOffTopicId]);
-
-  const addComment = async (content) => {
-    try {
-      let type = "off_topic";
-      let chatboxId = chatBoxOffTopicId;
-      if(activeTab === 'class') {
-        type = "in_class";
-        chatboxId = chatBoxInClassId;
-      }
-      const response = await axios.post(
-        "http://localhost:10000/hackathon/send-message",
-        {
-          chatBoxId: chatboxId,
-          context: content,
-          type: type
-        }
-      );
-      return response.data.status;
-    }
-    catch (err) {
-      console.error("Error adding comment:", err);
-    }
-  }
-
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!chatActive || !inputValue.trim()) return;
 
     const newMessage = {
       id: Date.now(),
       user: userRole === 'TEACHER' ? 'Giáo viên' : 'học sinh ẩn danh',
       content: inputValue,
+      createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       upvoteCount: 0,
-      upvotes: [], 
-      createdAt: new Date().toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
+      upvotes: [], // Initialize empty upvotes array
     };
-    setIsLoading(true)
-    const status = await addComment(inputValue);
-    setIsLoading(false)
-    console.log(status);
-    if (status === "success") {
-      // setMessages(prev => [...prev, newMessage]);
-    }
-    else{
-      setErrorPopup(true);
-    }
+
+    setMessages(prev => [...prev, newMessage]);
     setInputValue('');
-    
   };
 
   const handleUpvoteChange = async (questionId, newUpvoteCount) => {
+    // Update count immediately for UI responsiveness
     setMessages(prev =>
       prev.map(msg =>
         msg.id === questionId ? { ...msg, upvoteCount: newUpvoteCount } : msg
       )
     );
 
+    // Refetch questions to get fresh upvotes array from server
     try {
       const isClass = activeTab === 'class';
       const chatboxId = chatboxIds[isClass ? 'inClass' : 'offTopic'];
@@ -238,34 +155,6 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         placeholder={chatActive ? "Nhập câu hỏi của bạn..." : "Phiên chat đã đóng — chờ giáo viên mở"}
         chatActive={chatActive}
       />
-    {isLoading && (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-white px-6 py-4 rounded-lg shadow-lg text-center">
-          <div className="loader mb-3"></div>
-          <p className="text-gray-700 font-medium">Đang gửi câu hỏi...</p>
-        </div>
-      </div>
-    )}
-    {/* =================== ERROR POPUP =================== */}
-    {errorPopup && (
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div className="bg-white p-5 rounded-xl shadow-lg w-80 text-center border-2 border-red-500">
-          <div className="text-red-600 text-4xl mb-2">🚫</div>
-          <h2 className="text-lg font-semibold text-red-600 mb-2">
-            Không thể gửi câu hỏi!
-          </h2>
-          <p className="text-gray-700 mb-4">
-            Bạn chỉ có thể đặt các câu hỏi nghiêm túc.
-          </p>
-          <button
-            onClick={() => setErrorPopup(false)}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            Đóng
-          </button>
-        </div>
-      </div>
-    )}
     </div>
   );
-}
+} 

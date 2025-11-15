@@ -64,7 +64,7 @@ export default function ChatInput({
           onChange={(e) => onChange(e)}
           onKeyDown={handleKeyDown}
           placeholder={chatActive ? placeholder : 'Phiên chat đã tắt — bật để gửi tin nhắn'}
-          disabled={!chatActive}
+          disabled={!(chatActive)}
           className={inputClasses}
         />
 

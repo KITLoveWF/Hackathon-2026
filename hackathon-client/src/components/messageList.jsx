@@ -128,7 +128,13 @@ export default function MessageList({ messages = [], onUpvoteChange = null }) {
           >
             <div className="flex justify-between items-start mb-2 gap-2">
               <span className="font-semibold text-sm">Học sinh ẩn danh</span>
-              <span className="text-xs opacity-60 whitespace-nowrap">{msg.createdAt}</span>
+             <span className="text-xs opacity-70">{new Date(msg.createdAt).toLocaleString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+              })}</span>
             </div>
             <p className="text-sm break-all leading-relaxed">{msg.content}</p>
 

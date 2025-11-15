@@ -14,10 +14,10 @@ export default function MessageList({ messages = [] }) {
             }`}
           >
             <div className="flex justify-between items-start mb-1">
-              <span className="font-semibold text-sm">{msg.user}</span>
-              <span className="text-xs opacity-70">{msg.time}</span>
+              <span className="font-semibold text-sm">học sinh ẩn danh</span>
+              <span className="text-xs opacity-70">{msg.createdAt}</span>
             </div>
-            <p className="text-sm break-all">{msg.message}</p>
+            <p className="text-sm break-all">{msg.content}</p>
           </div>
         </div>
       ))}

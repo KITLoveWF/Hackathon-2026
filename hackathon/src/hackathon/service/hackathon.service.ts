@@ -173,7 +173,7 @@ export class HackathonService {
   }
 
   async getChatboxByClassAndType(classId: string, type: QuestionType) {
-    const chatboxes = await this.chatboxRepository.find({
+    const chatboxes = await this.chatboxRepository.findOne({
       where: {
         classId: classId,
         type: type,

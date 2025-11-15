@@ -9,6 +9,8 @@ import {
 } from "react-router-dom";
 import Login from '#pages/Login.jsx';
 import HomeLayout from '#layouts/HomeLayout.jsx';
+import ChatLayout from '#/layouts/ChatLayout.jsx';
+import Chatbox from '#/pages/Chatbox.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -42,6 +44,16 @@ function App() {
           },
         ]
       },
+      {
+          path: "/chat",
+          element: <ChatLayout />,         
+          children: [
+            {
+              index: true,                    
+              element: <Chatbox />,
+            },
+          ],
+        },
     ]
   )
 

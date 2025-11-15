@@ -1,12 +1,11 @@
 import { AuthErrorKind } from '../controller/hackathon.controller';
 
 export class AuthResponseData {
-  accesssToken: string;
-  refreshToken: string;
   User: {
     id: string;
     email: string;
     fullName: string;
+    role: string;
   };
 }
 

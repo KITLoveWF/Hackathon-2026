@@ -44,31 +44,16 @@ export class HackathonService {
         this._handleExceptionError('User not found', 401);
       }
 
-      const accessTokenPayload = {
-        sub: user.id,
-        email: user.email,
-        role: user.role.name,
-      };
-      const accessToken = this.jwtService.sign(accessTokenPayload, {
-        expiresIn: '5m',
-      });
-
-      const refreshTokenPayload = { sub: user.id };
-      const refreshToken = this.jwtService.sign(refreshTokenPayload, {
-        expiresIn: '7d',
-      });
-
       const userData = dto_converter({
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        role: user.role.name,
       });
 
       return {
         success: true,
         data: {
-          accesssToken: accessToken,
-          refreshToken: refreshToken,
           User: userData,
         },
         error: null,

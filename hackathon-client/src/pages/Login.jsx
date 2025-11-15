@@ -7,6 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [user, setUser] = useState(null)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -17,12 +18,7 @@ export default function Login() {
     try {
       const userData = await authService.login(email, password)
       console.log('Login successful:', userData)
-      const role = userData.role
-      if (role === 'admin') {
-        navigate('/dashboard')
-      } else {
-        navigate('/classroom')
-      }
+      setUser(userData.User)
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Login failed. Please try again.')
       console.error('Login error:', err)
@@ -31,6 +27,65 @@ export default function Login() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+      setUser(null)
+      setEmail('')
+      setPassword('')
+      navigate('/login')
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
+  }
+
+  // Nếu đã login, hiển thị user info
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="bg-white p-8 rounded-xl shadow-2xl border border-blue-100 max-w-md w-full">
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-blue-600">Welcome!</h2>
+            <p className="mt-2 text-sm text-gray-600">You are logged in</p>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600"><strong>Name:</strong> {user.fullName}</p>
+              <p className="text-sm text-gray-600"><strong>Email:</strong> {user.email}</p>
+              <p className="text-sm text-gray-600">
+                <strong>Role:</strong> <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">{user.role}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                const role = user.role
+                if (role === 'admin') {
+                  navigate('/dashboard')
+                } else {
+                  navigate('/classroom')
+                }
+              }}
+              className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-all"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-red-700 transition-all"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Form login
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Image */}

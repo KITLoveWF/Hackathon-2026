@@ -28,8 +28,13 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+<<<<<<< HEAD
     "@nestjs/swagger": "^11.2.1",
+=======
+    "@nestjs/platform-socket.io": "^11.1.9",
+>>>>>>> 704c6fd1c4df81f8db6f003c89ff874a84e864d9
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.9",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

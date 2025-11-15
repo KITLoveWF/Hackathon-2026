@@ -198,4 +198,42 @@ export class HackathonService {
       data: questions,
     };
   }
+  async getTotalQuestionsByClassroomByWeek(classroomId: string): Promise<any> {
+    const result = await this.questionRepository
+      .createQueryBuilder('questions')
+      .innerJoin('chatboxes', 'chatboxes', 'questions.chatboxId = chatboxes.id')
+      .where('chatboxes.classId = :classroomId', { classroomId })
+      .andWhere('questions.createdAt >= NOW() - INTERVAL \'7 days\'')
+      .getCount();
+    return result;
+  }
+  async getTotalQuestionsByClassroomByLastWeek(classroomId: string): Promise<any> {
+    const result = await this.questionRepository
+      .createQueryBuilder('questions')
+      .innerJoin('chatboxes', 'chatboxes', 'questions.chatboxId = chatboxes.id')
+      .where('chatboxes.classId = :classroomId', { classroomId })
+      .andWhere('questions.createdAt >= NOW() - INTERVAL \'14 days\'')
+      .andWhere('questions.createdAt < NOW() - INTERVAL \'7 days\'')
+      .getCount();
+    return result;
+  }
+  async getTotalQuestionsByClassroomByMonth(classroomId: string): Promise<any> {
+    const result = await this.questionRepository
+      .createQueryBuilder('questions')
+      .innerJoin('chatboxes', 'chatboxes', 'questions.chatboxId = chatboxes.id')
+      .where('chatboxes.classId = :classroomId', { classroomId })
+      .andWhere('questions.createdAt >= NOW() - INTERVAL \'30 days\'')
+      .getCount();
+    return result;
+  }
+  async getTotalQuestionsByClassroomByLastMonth(classroomId: string): Promise<any> {
+    const result = await this.questionRepository
+      .createQueryBuilder('questions')
+      .innerJoin('chatboxes', 'chatboxes', 'questions.chatboxId = chatboxes.id')
+      .where('chatboxes.classId = :classroomId', { classroomId })
+      .andWhere('questions.createdAt >= NOW() - INTERVAL \'60 days\'')
+      .andWhere('questions.createdAt < NOW() - INTERVAL \'30 days\'')
+      .getCount();
+    return result;
+  }
 }

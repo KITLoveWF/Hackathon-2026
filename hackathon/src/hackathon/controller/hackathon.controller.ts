@@ -64,4 +64,20 @@ export class HackathonController {
   ) {
     return this.hackathonService.getQuestionsByChatboxId(chatboxId);
   }
+  @Get('classroom/:classroomId/total-questions/week')
+  async getTotalQuestionsByClassroomWeek(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByWeek(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/last-week')
+  async getTotalQuestionsByClassroomLastWeek(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByLastWeek(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/month')
+  async getTotalQuestionsByClassroomMonth(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByMonth(classroomId);
+  }
+  @Get('classroom/:classroomId/total-questions/last-month')
+  async getTotalQuestionsByClassroomLastMonth(@Param('classroomId') classroomId: string): Promise<any> {
+    return this.hackathonService.getTotalQuestionsByClassroomByLastMonth(classroomId);
+  }
 }

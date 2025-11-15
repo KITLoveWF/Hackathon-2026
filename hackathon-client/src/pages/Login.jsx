@@ -18,10 +18,10 @@ export default function Login() {
       const userData = await authService.login(email, password)
       console.log('Login successful:', userData)
       const role = userData.role
-      if (role === 'admin') {
+      if (role === 'ADMIN') {
         navigate('/dashboard')
       } else {
-        navigate('/classroom')
+        navigate('/classroom', { state: {userData} })
       }
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Login failed. Please try again.')

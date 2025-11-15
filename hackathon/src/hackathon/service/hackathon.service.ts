@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
+import { Question } from '../entities/question.entity';
 import { LoginDto, dto_converter } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
 import { QuestionDto } from '../dto/question.dto';
@@ -22,6 +23,8 @@ export class HackathonService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    @InjectRepository(Question)
+    private readonly questionRepository: Repository<Question>,
   ) {}
 
   healthcheck(): { status: string; message: string; timestamp: string } {
@@ -97,8 +100,16 @@ export class HackathonService {
 
   // Add question
   async addQuestion(questionDto: QuestionDto): Promise<void> {
-    const { id, chatBoxId, context, type } = questionDto;
+    const { chatBoxId, context, type } = questionDto;
     const n8n_response = await this.fetchData(context);
+    if (n8n_response.status === 'success') {
+      try {
+        await this.addQuestionInDB(questionDto);
+      } catch (error) {
+        throw new HttpException(
+          'Failed to add question to the database', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
     return n8n_response;
   }
 
@@ -109,5 +120,14 @@ export class HackathonService {
       method: 'GET',
     });
     return await res.json();
+  }
+
+  async addQuestionInDB (questionDto: QuestionDto): Promise<void> {
+    const question = this.questionRepository.create({
+      chatboxId: questionDto.chatBoxId,
+      content: questionDto.context,
+      type: questionDto.type,
+    });
+    await this.questionRepository.save(question);
   }
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ChatGrid from '#components/ChatGrid';
 import { useLocation } from "react-router-dom";
 import axios from 'axios';
+import socketService from '../services/socketService';
 
 export default function MainContent({ activeTab, chatActive, userRole }) {
   const { state } = useLocation();
@@ -56,7 +57,43 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
       }
     };
     fetchAll();
-  },[]);
+  },[state.classroomId]);
+
+  // WebSocket: Kết nối và tham gia room
+  useEffect(() => {
+    // Kết nối WebSocket
+    socketService.connect();
+
+    // Tham gia room khi có chatBoxId
+    if (chatBoxInClassId && state.classroomId) {
+      socketService.joinClassroom(state.classroomId, chatBoxInClassId, 'in_class');
+    }
+    if (chatBoxOffTopicId && state.classroomId) {
+      socketService.joinClassroom(state.classroomId, chatBoxOffTopicId, 'off_topic');
+    }
+
+    // Lắng nghe tin nhắn mới
+    socketService.onMessageReceived((message) => {
+      console.log('📨 Received new message:', message);
+      
+      //Thêm message vào đúng tab
+      if (message.type === 'in_class') {
+        setClassMessages(prev => [...prev, message]);
+      } else if (message.type === 'off_topic') {
+        setOffTopicMessages(prev => [...prev, message]);
+      }
+    });
+
+    // Cleanup khi unmount
+    return () => {
+      if (state.classroomId) {
+        socketService.leaveClassroom(state.classroomId, 'in_class');
+        socketService.leaveClassroom(state.classroomId, 'off_topic');
+      }
+      socketService.off('messageReceived');
+      socketService.disconnect();
+    };
+  }, [chatBoxInClassId, chatBoxOffTopicId, state.classroomId]);
 
   useEffect(() => {
     console.log("UPDATED - in class:", chatBoxInClassId);
@@ -106,7 +143,7 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
     setIsLoading(false)
     console.log(status);
     if (status === "success") {
-      setMessages(prev => [...prev, newMessage]);
+      // setMessages(prev => [...prev, newMessage]);
     }
     else{
       setErrorPopup(true);

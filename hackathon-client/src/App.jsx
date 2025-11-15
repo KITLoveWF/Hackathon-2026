@@ -8,28 +8,29 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import Login from '#pages/Login.jsx';
+import Classroom from '#pages/Classroom.jsx';
 import HomeLayout from '#layouts/HomeLayout.jsx';
 function App() {
   const [count, setCount] = useState(0)
   const [healthStatus, setHealthStatus] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    checkHealth()
-  }, [])
+  // useEffect(() => {
+  //   checkHealth()
+  // }, [])
 
-  const checkHealth = async () => {
-    setLoading(true)
-    try {
-      const response = await axios.get('http://localhost:3000/hackathon/healthcheck')
-      setHealthStatus(response.data)
-    } catch (error) {
-      console.error('Health check failed:', error)
-      setHealthStatus({ status: 'error', error: error.message })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // const checkHealth = async () => {
+  //   setLoading(true)
+  //   try {
+  //     const response = await axios.get('http://localhost:3000/hackathon/healthcheck')
+  //     setHealthStatus(response.data)
+  //   } catch (error) {
+  //     console.error('Health check failed:', error)
+  //     setHealthStatus({ status: 'error', error: error.message })
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
   const router = createBrowserRouter(
     [
       {
@@ -37,7 +38,10 @@ function App() {
         element: <HomeLayout />,
         children: [
           { 
-            index: true, element: <Login />
+            path:'/' ,element: <Login />
+          },
+          {
+            path: '/classroom', element: <Classroom />
           },
         ]
       },

@@ -27,8 +27,10 @@ ChartJS.register(
 export default function StatisticsModal({ isOpen, onClose }) {
   const [frequentQuestions, setFrequentQuestions] = useState([]);
   const [popularKnowledge, setPopularKnowledge] = useState([]);
+  const [clusteredQuestions, setClusteredQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const chatboxId = 'default_chatbox'; // Replace with actual chatbox ID (e.g., from props or context)
 
   // Sample data
   const sampleQuestions = [
@@ -48,14 +50,30 @@ export default function StatisticsModal({ isOpen, onClose }) {
       const fetchStatistics = async () => {
         setLoading(true);
         try {
+          // Fetch frequent questions and popular knowledge
           const questions = await ragService.getFrequentQuestions();
           const knowledge = await ragService.getPopularKnowledge();
           setFrequentQuestions(questions.length > 0 ? questions : sampleQuestions);
           setPopularKnowledge(knowledge.length > 0 ? knowledge : sampleKnowledge);
+
+          // Fetch clustered questions
+          try {
+            const clusters = await ragService.getClusteredQuestions(chatboxId);
+            setClusteredQuestions(clusters);
+          } catch (err) {
+            // If no clustered data, trigger background clustering
+            await ragService.triggerBackgroundClustering(chatboxId);
+            // Retry fetching after a short delay (adjust as needed)
+            setTimeout(async () => {
+              const clusters = await ragService.getClusteredQuestions(chatboxId);
+              setClusteredQuestions(clusters);
+            }, 2000);
+          }
         } catch (err) {
-        //   setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.');
+          setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.');
           setFrequentQuestions(sampleQuestions);
           setPopularKnowledge(sampleKnowledge);
+          setClusteredQuestions([]);
         } finally {
           setLoading(false);
         }
@@ -76,8 +94,8 @@ export default function StatisticsModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const questionsChartData = {
-    labels: frequentQuestions.map(q =>
-    q.text.length > 10 ? q.text.slice(0, 10) + "..." : q.text
+    labels: frequentQuestions.map((q) =>
+      q.text.length > 10 ? q.text.slice(0, 10) + '...' : q.text
     ),
     datasets: [
       {
@@ -103,7 +121,6 @@ export default function StatisticsModal({ isOpen, onClose }) {
     },
   };
 
-  // Pie Chart Data (Popular Knowledge)
   const knowledgeChartData = {
     labels: popularKnowledge.map((k) => k.topic),
     datasets: [
@@ -133,7 +150,7 @@ export default function StatisticsModal({ isOpen, onClose }) {
       aria-labelledby="modal-title"
       aria-modal="true"
     >
-      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full p-6 sm:p-8 relative transform transition-all duration-300 scale-100">
+      <div className="bg-white rounded-2xl shadow-xl max-w-5xl w-full p-6 sm:p-8 relative transform transition-all duration-300 scale-100">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -169,56 +186,97 @@ export default function StatisticsModal({ isOpen, onClose }) {
 
         {/* Charts and Data */}
         {!loading && !error && (
-          <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-            {/* Frequent Questions - Bar Chart */}
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Câu hỏi thường gặp
-              </h3>
-              {frequentQuestions.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
-                    <div className="w-full">
-                      <Bar data={questionsChartData} options={questionsChartOptions} />
+          <div className="space-y-8">
+            {/* Frequent Questions and Popular Knowledge */}
+            <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
+              {/* Frequent Questions - Bar Chart */}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  Câu hỏi thường gặp
+                </h3>
+                {frequentQuestions.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
+                      <div className="w-full">
+                        <Bar data={questionsChartData} options={questionsChartOptions} />
+                      </div>
                     </div>
+                    <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
+                      {frequentQuestions.map((question, index) => (
+                        <li key={index} className="flex justify-between">
+                          <span className="font-small truncate">{question.text}</span>
+                          <span>({question.count} lần)</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
-                    {frequentQuestions.map((question, index) => (
-                      <li key={index} className="flex justify-between">
-                        <span className="font-small truncate">{question.text}</span>
-                        <span>({question.count} lần)</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center">Chưa có dữ liệu câu hỏi.</p>
-              )}
+                ) : (
+                  <p className="text-gray-500 text-center">Chưa có dữ liệu câu hỏi.</p>
+                )}
+              </div>
+
+              {/* Popular Knowledge - Pie Chart */}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  Kiến thức hay bị hỏi
+                </h3>
+                {popularKnowledge.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
+                      <div className="w-full">
+                        <Pie data={knowledgeChartData} options={knowledgeChartOptions} />
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
+                      {popularKnowledge.map((knowledge, index) => (
+                        <li key={index} className="flex justify-between">
+                          <span className="font-medium truncate">{knowledge.topic}</span>
+                          <span>({knowledge.count} lần)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center">Chưa có dữ liệu kiến thức.</p>
+                )}
+              </div>
             </div>
 
-            {/* Popular Knowledge - Pie Chart */}
-            <div className="flex-1">
+            {/* Clustered Questions */}
+            <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Kiến thức hay bị hỏi
+                Cụm câu hỏi
               </h3>
-              {popularKnowledge.length > 0 ? (
+              {clusteredQuestions.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
-                    <div className="w-full">
-                      <Pie data={knowledgeChartData} options={knowledgeChartOptions} />
-                    </div>
+                  <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <ul className="space-y-4">
+                      {clusteredQuestions.map((cluster, index) => (
+                        <li key={index} className="border-b border-gray-200 pb-2">
+                          <h4 className="text-sm font-medium text-gray-800">
+                            Cụm {cluster.cluster_id + 1}: {cluster.label}
+                          </h4>
+                          <ul className="ml-4 mt-2 space-y-1 text-sm text-gray-600">
+                            {cluster.questions.slice(0, 5).map((question, qIndex) => (
+                              <li key={qIndex} className="truncate">
+                                - {question}
+                              </li>
+                            ))}
+                            {cluster.questions.length > 5 && (
+                              <li className="text-gray-500">
+                                ...và {cluster.questions.length - 5} câu hỏi khác
+                              </li>
+                            )}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
-                    {popularKnowledge.map((knowledge, index) => (
-                      <li key={index} className="flex justify-between">
-                        <span className="font-medium truncate">{knowledge.topic}</span>
-                        <span>({knowledge.count} lần)</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               ) : (
-                <p className="text-gray-500 text-center">Chưa có dữ liệu kiến thức.</p>
+                <p className="text-gray-500 text-center">
+                  Chưa có dữ liệu cụm. Đang thực hiện phân cụm...
+                </p>
               )}
             </div>
           </div>

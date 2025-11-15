@@ -48,7 +48,7 @@ class SocketService {
     this.socket.emit('joinClassroom', {
       classroomId,
       chatBoxId,
-      type, // 'in_class' hoặc 'off_topic'
+      type, 
     });
 
     console.log(`🚪 Joining room: ${classroomId}-${type}`);

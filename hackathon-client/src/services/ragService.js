@@ -76,6 +76,26 @@ const ragService = {
       throw new Error(error.response?.datail || 'API không khả dụng.');
     }
   },
+  getClusteredQuestions: async (chatboxId) => {
+    try {
+      const response = await axios.get(`${API_URL}/clustered_questions/${chatboxId}`);
+      return response.data.clusters;
+    } catch (error) {
+      console.error('Failed to fetch clustered questions:', error);
+      throw error;
+    }
+  },
+
+  // New method to trigger background clustering
+  triggerBackgroundClustering: async (chatboxId) => {
+    try {
+      const response = await axios.post(`${API_URL}/cluster_questions_background/${chatboxId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to trigger background clustering:', error);
+      throw error;
+    }
+  },
 };
 
 export default ragService;

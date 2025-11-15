@@ -42,7 +42,6 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
   const inputValue = isClass ? classInput : offTopicInput;
   const setInputValue = isClass ? setClassInput : setOffTopicInput;
   const setMessages = isClass ? setClassMessages : setOffTopicMessages;
-
   useEffect(() => {
     console.log("Chatbox useEffect - State:", state);
     

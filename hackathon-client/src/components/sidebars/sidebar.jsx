@@ -56,15 +56,15 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {userRole === 'TEACHER' && (
+        {userRole === 'TEACHER' && activeTab ==='class' && (
           <div className="p-6 pt-0 border-t border-white/20">
             <button
               onClick={onChatToggle}
               className={`w-full flex items-center justify-center gap-4 px-6 py-4 rounded-xl font-bold text-white transition-all transform hover:scale-105 shadow-xl
-                ${chatActive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'}
+                ${chatActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
               `}
             >
-              {chatActive ? (
+              {!chatActive ? (
                 <>
                   <PowerOff size={26} />
                   <span className={isOpen ? 'block' : 'hidden'}>Kết thúc phiên chat</span>
@@ -79,8 +79,8 @@ export default function Sidebar({
 
             {isOpen && (
               <p className="text-white/80 text-sm text-center mt-3 font-medium">
-                Trạng thái: <span className={chatActive ? 'text-emerald-300' : 'text-red-300'}>
-                  {chatActive ? 'Đang hoạt động' : 'Đã tắt'}
+                Trạng thái: <span className={chatActive ? 'text-red-300' : 'text-emerald-300'}>
+                  {chatActive ? 'Đã tắt' : 'Đang hoạt động'}
                 </span>
               </p>
             )}

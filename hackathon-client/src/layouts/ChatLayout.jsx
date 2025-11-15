@@ -14,7 +14,7 @@ export default function ChatLayout() {
     const role = authService.getRole();
     setUserRole(role);
 
-    if (role === 'TEACHER') {
+    if (role === 'STUDENT') {
       setChatActive(true);
     }
   }, []);

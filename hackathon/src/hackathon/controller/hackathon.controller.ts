@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { HackathonService } from '../service/hackathon.service';
 import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDTO } from '../dto/auth-response.dto';
@@ -20,6 +20,14 @@ export class HackathonController {
   @Post('auth/login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDTO> {
     return this.hackathonService.login(loginDto);
+  }
+  @Get('classrooms/:teacherId')
+  async getClassroomById(@Param('teacherId') teacherId: string): Promise<any> {
+    return this.hackathonService.getClassroomById(teacherId);
+  }
+  @Get('student/classrooms/:studentId')
+  async getStudentClassrooms(@Param('studentId') studentId: string): Promise<any> {
+    return this.hackathonService.getStudentClassrooms(studentId);
   }
 
   @Post('send-message')

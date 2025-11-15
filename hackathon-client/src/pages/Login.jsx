@@ -7,7 +7,12 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault()
     console.log('Login:', { email, password })
-    navigate('/classroom');
+    // const teacherId = "162d3fa4-564d-447e-ae9b-0672362a95f7";
+    // const studentId = "a5f9d01e-8a17-481e-8fb5-749ee4df594f";
+    const fullName = "Mai Đức Kiên";
+    const role = "STUDENT";
+    const id= "a5f9d01e-8a17-481e-8fb5-749ee4df594f";
+    navigate('/classroom', { state: { id , fullName, role } });
   }
 
   return (

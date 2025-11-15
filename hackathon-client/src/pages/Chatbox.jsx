@@ -179,6 +179,14 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
           type: type
         }
       );
+      if (response.data.status === 'success') {
+        try {
+          await ragService.triggerBackgroundClustering(chatboxId);
+          console.log(`Triggered background clustering for chatbox ${chatboxId}`);
+        } catch (clusterError) {
+          console.error('Failed to trigger background clustering:', clusterError);
+        }
+      }
       return response.data.status;
     }
     catch (err) {

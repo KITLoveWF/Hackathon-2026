@@ -23,7 +23,7 @@ const Popup = ({ message, onClose }) => {
   );
 };
 
-export default function MainContent({ activeTab, chatActive, userRole }) {
+export default function MainContent({ activeTab, chatActive, userRole, onChatboxIdChange }) {
   const location = useLocation();
   const state = location.state || {};
   const [classMessages, setClassMessages] = useState([]);
@@ -68,10 +68,16 @@ export default function MainContent({ activeTab, chatActive, userRole }) {
         const chatBoxInClass = inClassRes.data.data;
         const chatBoxOffTopic = offTopicRes.data.data;
         
+        const inClassId = chatBoxInClass?.id;
+        const offTopicId = chatBoxOffTopic?.id;
         setChatboxIds({
-          inClass: chatBoxInClass?.id,
-          offTopic: chatBoxOffTopic?.id,
+          inClass: inClassId,
+          offTopic: offTopicId,
         });
+        // Notify parent of current chatbox ID
+        if (onChatboxIdChange) {
+          onChatboxIdChange(inClassId);
+        }
         
         console.log("IN CLASS CHATBOX:", chatBoxInClass);
         console.log("OFF TOPIC CHATBOX:", chatBoxOffTopic);

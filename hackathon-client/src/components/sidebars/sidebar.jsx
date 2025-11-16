@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { MessageSquare, MessageCircle, Upload, X, Power, PowerOff, BarChart } from 'lucide-react';
 import ragService from '../../services/ragService';
 import StatisticsModal from '../StatisticsModal';
-export default function Sidebar({ isOpen, activeTab, onTabChange, chatActive, onChatToggle, userRole }) {
+export default function Sidebar({ isOpen, activeTab, onTabChange, chatActive, onChatToggle, userRole, chatboxId }) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isStatisticsModalOpen, setIsStatisticsModalOpen] = useState(false);
 
@@ -91,7 +91,7 @@ export default function Sidebar({ isOpen, activeTab, onTabChange, chatActive, on
         )}
       </div>
       <UploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
-      <StatisticsModal isOpen={isStatisticsModalOpen} onClose={() => setIsStatisticsModalOpen(false)} />
+      <StatisticsModal isOpen={isStatisticsModalOpen} onClose={() => setIsStatisticsModalOpen(false)} chatboxId={chatboxId} />
     </>
   );
 }

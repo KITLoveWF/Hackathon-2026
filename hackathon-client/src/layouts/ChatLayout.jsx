@@ -9,6 +9,7 @@ export default function ChatLayout() {
   const [activeTab, setActiveTab] = useState('class');
   const [chatActive, setChatActive] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [chatboxId, setChatboxId] = useState(null);
 
   useEffect(() => {
     const role = authService.getRole();
@@ -37,6 +38,7 @@ export default function ChatLayout() {
             chatActive={chatActive}
             onChatToggle={() => setChatActive(prev => !prev)}
             userRole={userRole}
+            chatboxId={chatboxId}
           />
 
           <main className="flex-1 overflow-hidden bg-transparent">
@@ -44,6 +46,7 @@ export default function ChatLayout() {
               activeTab={activeTab}
               chatActive={chatActive}
               userRole={userRole}
+              onChatboxIdChange={setChatboxId}
             />
           </main>
         </div>

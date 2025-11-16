@@ -1,77 +1,43 @@
 import { useState, useEffect } from 'react';
-import { X, BarChart as BarChartIcon, Network } from 'lucide-react';
+import { X, Network } from 'lucide-react';
 import ragService from '../services/ragService';
-import { Bar, Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js';
+import upvoteService from '../services/upvoteService';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+// Sample data constants
+const SAMPLE_QUESTIONS = [
+  'Câu hỏi về bài toán tích phân',
+  'Cách giải phương trình bậc hai',
+  'Định nghĩa đạo hàm',
+];
 
-export default function StatisticsModal({ isOpen, onClose }) {
-  const [frequentQuestions, setFrequentQuestions] = useState([]);
-  const [popularKnowledge, setPopularKnowledge] = useState([]);
+export default function StatisticsModal({ isOpen, onClose, chatboxId }) {
   const [clusteredData, setClusteredData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [numClusters, setNumClusters] = useState(3);
 
-  // Sample data
-  const sampleQuestions = [
-    { text: 'Câu hỏi về bài toán tích phân', count: 15 },
-    { text: 'Cách giải phương trình bậc hai', count: 10 },
-    { text: 'Định nghĩa đạo hàm', count: 8 },
-  ];
-
-  const sampleKnowledge = [
-    { topic: 'Tích phân', count: 20 },
-    { topic: 'Đạo hàm', count: 18 },
-    { topic: 'Phương trình bậc hai', count: 12 },
-  ];
-
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && chatboxId) {
       const fetchStatistics = async () => {
         setLoading(true);
         setError(null);
         try {
-          // const questions = await ragService.getFrequentQuestions();
-          // const knowledge = await ragService.getPopularKnowledge();
+          // Get questions from upvoteService
+          const questions = await upvoteService.getQuestionsSorted(chatboxId);
+          const questionTexts = questions.length > 0 
+            ? questions.map(q => q.text || q.title || q.content)
+            : SAMPLE_QUESTIONS;
           
-          // const finalQuestions = questions.length > 0 ? questions : sampleQuestions;
-          // const finalKnowledge = knowledge.length > 0 ? knowledge : sampleKnowledge;
-          const questionTexts = sampleQuestions.map(q => q.text);
-          const clusterResult = await ragService.clusterQuestions(questionTexts, numClusters);
-          setClusteredData(clusterResult.clusters || []);
-          // setFrequentQuestions(finalQuestions);
-          // setPopularKnowledge(finalKnowledge);
-
-          // // Perform clustering on the questions
-          // if (finalQuestions.length > 0) {
-          //   const questionTexts = finalQuestions.map(q => q.text);
-          //   const clusterResult = await ragService.clusterQuestions(questionTexts, numClusters);
-          //   setClusteredData(clusterResult.clusters || []);
-          // }
+          // Perform clustering on the questions
+          if (questionTexts.length > 0) {
+            const clusterResult = await ragService.clusterQuestions(questionTexts, numClusters);
+            setClusteredData(clusterResult.clusters || []);
+          } else {
+            setClusteredData([]);
+          }
         } catch (err) {
           console.error('Error fetching statistics:', err);
-          setFrequentQuestions(sampleQuestions);
-          setPopularKnowledge(sampleKnowledge);
+          setError('Lỗi khi tải dữ liệu');
           setClusteredData([]);
         } finally {
           setLoading(false);
@@ -79,7 +45,7 @@ export default function StatisticsModal({ isOpen, onClose }) {
       };
       fetchStatistics();
     }
-  }, [isOpen, numClusters]);
+  }, [isOpen, chatboxId, numClusters]);
 
   // Close modal with Esc key
   useEffect(() => {
@@ -91,56 +57,6 @@ export default function StatisticsModal({ isOpen, onClose }) {
   }, [onClose]);
 
   if (!isOpen) return null;
-
-  const questionsChartData = {
-    labels: frequentQuestions.map(q =>
-      q.text.length > 10 ? q.text.slice(0, 10) + "..." : q.text
-    ),
-    datasets: [
-      {
-        label: 'Số lần hỏi',
-        data: frequentQuestions.map((q) => q.count),
-        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const questionsChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      title: { display: true, text: 'Câu hỏi thường gặp', font: { size: 14 } },
-    },
-    scales: {
-      y: { beginAtZero: true, title: { display: true, text: 'Số lần' } },
-      x: { title: { display: true, text: 'Câu hỏi' } },
-    },
-  };
-
-  const knowledgeChartData = {
-    labels: popularKnowledge.map((k) => k.topic),
-    datasets: [
-      {
-        label: 'Số lần hỏi',
-        data: popularKnowledge.map((k) => k.count),
-        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#3B82F6'],
-        borderColor: ['#047857', '#B45309', '#991B1B', '#1E3A8A'],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const knowledgeChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top', labels: { font: { size: 12 } } },
-      title: { display: true, text: 'Kiến thức hay bị hỏi', font: { size: 14 } },
-    },
-  };
 
   const clusterColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -166,8 +82,8 @@ export default function StatisticsModal({ isOpen, onClose }) {
           id="modal-title"
           className="text-2xl font-bold text-gray-900 mb-6 text-center flex items-center justify-center gap-2"
         >
-          <BarChartIcon size={24} className="text-blue-600" />
-          Thống kê câu hỏi
+          <Network size={24} className="text-purple-600" />
+          Phân cụm câu hỏi
         </h2>
 
         {/* Loading State */}
@@ -188,63 +104,8 @@ export default function StatisticsModal({ isOpen, onClose }) {
         {/* Charts and Data */}
         {!loading && !error && (
           <div className="space-y-8">
-            {/* Original Charts Row */}
-            <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
-              {/* Frequent Questions - Bar Chart */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                  Câu hỏi thường gặp
-                </h3>
-                {frequentQuestions.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
-                      <div className="w-full">
-                        <Bar data={questionsChartData} options={questionsChartOptions} />
-                      </div>
-                    </div>
-                    <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
-                      {frequentQuestions.map((question, index) => (
-                        <li key={index} className="flex justify-between">
-                          <span className="font-small truncate">{question.text}</span>
-                          <span>({question.count} lần)</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center">Chưa có dữ liệu câu hỏi.</p>
-                )}
-              </div>
-
-              {/* Popular Knowledge - Pie Chart */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                  Kiến thức hay bị hỏi
-                </h3>
-                {popularKnowledge.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="h-56 bg-gray-50 p-4 rounded-lg shadow-sm flex justify-center">
-                      <div className="w-full">
-                        <Pie data={knowledgeChartData} options={knowledgeChartOptions} />
-                      </div>
-                    </div>
-                    <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
-                      {popularKnowledge.map((knowledge, index) => (
-                        <li key={index} className="flex justify-between">
-                          <span className="font-medium truncate">{knowledge.topic}</span>
-                          <span>({knowledge.count} lần)</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center">Chưa có dữ liệu kiến thức.</p>
-                )}
-              </div>
-            </div>
-
             {/* Clustering Section */}
-            <div className="border-t pt-6">
+            <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <Network size={20} className="text-purple-600" />

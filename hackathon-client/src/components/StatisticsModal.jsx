@@ -220,7 +220,7 @@ export default function StatisticsModal({ isOpen, onClose, chatboxId }) {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: clusterColors[index % clusterColors.length] }}
                         ></span>
-                        Cụm {cluster.cluster_id + 1}: {cluster.label}
+                        Cụm {cluster.cluster_id + 1}
                       </h4>
                       <ul className="space-y-2 text-sm text-gray-600 max-h-40 overflow-y-auto">
                         {cluster.questions.map((question, qIndex) => (

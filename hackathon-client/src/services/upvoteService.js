@@ -39,7 +39,7 @@ const upvoteService = {
   getQuestionsSorted: async (chatboxId) => {
     try {
       const response = await axios.get(
-        `${API_URL}/hackathon/chatbox/${chatboxId}/questions/sorted`
+        `${API_URL}/hackathon/questions/${chatboxId}`
       );
 
       return response.data.data || [];
@@ -48,6 +48,7 @@ const upvoteService = {
       throw error;
     }
   },
+  
 };
 
 export default upvoteService;

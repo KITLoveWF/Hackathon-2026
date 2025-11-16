@@ -251,7 +251,7 @@ export default function MainContent({ activeTab, chatActive, userRole, onChatbox
     // Thêm tin nhắn vào danh sách (trừ trường hợp là câu hỏi học thuật trong off-topic)
     let ragCheck = false;
     if (isClass || !isAcademicQuestion(inputValue)) {
-      setMessages(prev => [...prev, newMessage]);
+      // setMessages(prev => [...prev, newMessage]);
     }
     setInputValue('');
     // Xử lý câu hỏi học thuật trong tab ngoài lề
@@ -262,7 +262,7 @@ export default function MainContent({ activeTab, chatActive, userRole, onChatbox
         const response = await ragService.query(inputValue, 3);
         // Hiển thị câu trả lời trong popup thay vì thêm vào danh sách tin nhắn
         console.log("RAG RESPONSE:", response);
-        if (response.scores[0]>0.4) {
+        if (response.is_relevant) {
           ragCheck = true;
           setPopup({
             visible: true,
@@ -341,7 +341,7 @@ export default function MainContent({ activeTab, chatActive, userRole, onChatbox
             Không thể gửi câu hỏi!
           </h2>
           <p className="text-gray-700 mb-4">
-            Bạn chỉ có thể đặt các câu hỏi nghiêm túc.
+            Bạn chỉ có thể đặt các câu hỏi nghiêm túc và lịch sự.
           </p>
           <button
             onClick={() => setErrorPopup(false)}

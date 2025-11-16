@@ -76,6 +76,24 @@ const ragService = {
       throw new Error(error.response?.datail || 'API không khả dụng.');
     }
   },
+  clusterQuestions: async (questions, numClusters = 3) => {
+    const response = await fetch(`${API_URL}/cluster_questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        questions, 
+        num_clusters: numClusters 
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Clustering failed');
+    }
+
+    return await response.json();
+  },
+    
 };
 
 export default ragService;

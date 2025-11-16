@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
-import { X, Network } from 'lucide-react';
+import { X, Network, PieChart } from 'lucide-react';
+import { Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import ragService from '../services/ragService';
 import upvoteService from '../services/upvoteService';
+
+// Register ChartJS components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 // Sample data constants
 const SAMPLE_QUESTIONS = [
@@ -60,6 +70,63 @@ export default function StatisticsModal({ isOpen, onClose, chatboxId }) {
 
   const clusterColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
+  // Prepare data for pie chart
+  const totalQuestions = clusteredData.reduce((sum, cluster) => sum + cluster.questions.length, 0);
+  
+  const chartData = {
+    labels: clusteredData.map(cluster => cluster.label),
+    datasets: [
+      {
+        data: clusteredData.map(cluster => cluster.questions.length),
+        backgroundColor: clusteredData.map((_, index) => clusterColors[index % clusterColors.length]),
+        borderColor: '#ffffff',
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 15,
+          font: {
+            size: 12,
+          },
+          generateLabels: (chart) => {
+            const data = chart.data;
+            if (data.labels.length && data.datasets.length) {
+              return data.labels.map((label, i) => {
+                const value = data.datasets[0].data[i];
+                const percentage = totalQuestions > 0 ? ((value / totalQuestions) * 100).toFixed(1) : 0;
+                return {
+                  text: `${label}: ${value} câu (${percentage}%)`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  hidden: false,
+                  index: i
+                };
+              });
+            }
+            return [];
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed;
+            const percentage = totalQuestions > 0 ? ((value / totalQuestions) * 100).toFixed(1) : 0;
+            return `${label}: ${value} câu hỏi (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 overflow-y-auto"
@@ -104,7 +171,22 @@ export default function StatisticsModal({ isOpen, onClose, chatboxId }) {
         {/* Charts and Data */}
         {!loading && !error && (
           <div className="space-y-8">
-            {/* Clustering Section */}
+            {/* Pie Chart Section - NEW */}
+            {clusteredData.length > 0 && (
+              <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <PieChart size={20} className="text-purple-600" />
+                  Phân bố câu hỏi theo cụm
+                </h3>
+                <div className="flex justify-center">
+                  <div className="w-full max-w-md h-80">
+                    <Pie data={chartData} options={chartOptions} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Clustering Section - ORIGINAL */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
